@@ -1,0 +1,102 @@
+{
+  "expectedTarballFiles": [
+    "package/LICENSE",
+    "package/README.md",
+    "package/dist/app-directory.d.ts",
+    "package/dist/app-directory.js",
+    "package/dist/browser-actions.d.ts",
+    "package/dist/browser-actions.js",
+    "package/dist/command-host.d.ts",
+    "package/dist/command-host.js",
+    "package/dist/commands.d.ts",
+    "package/dist/commands.js",
+    "package/dist/index.d.ts",
+    "package/dist/index.js",
+    "package/dist/keys.d.ts",
+    "package/dist/keys.js",
+    "package/dist/shell-module.d.ts",
+    "package/dist/shell-module.js",
+    "package/dist/window-manager.d.ts",
+    "package/dist/window-manager.js",
+    "package/dist/workbench-contract.d.ts",
+    "package/dist/workbench-contract.js",
+    "package/dist/workbench-directory.d.ts",
+    "package/dist/workbench-directory.js",
+    "package/dist/workbench-host-types.d.ts",
+    "package/dist/workbench-host-types.js",
+    "package/dist/workbench-host.d.ts",
+    "package/dist/workbench-host.js",
+    "package/dist/workbench-model.d.ts",
+    "package/dist/workbench-model.js",
+    "package/dist/workbench.d.ts",
+    "package/dist/workbench.js",
+    "package/docs/api/README.md",
+    "package/docs/api/app-directory.md",
+    "package/docs/api/command-host.md",
+    "package/docs/api/commands.md",
+    "package/docs/api/index.md",
+    "package/docs/api/keys.md",
+    "package/docs/api/shell-module.md",
+    "package/docs/api/window-manager.md",
+    "package/docs/api/workbench-directory.md",
+    "package/docs/api/workbench.md",
+    "package/package.json"
+  ],
+  "localDependencies": [
+    "../agar",
+    "../ear-tag",
+    "../gills",
+    "../puffball",
+    "../whistle"
+  ],
+  "runtimeFixture": "test/stranger/runtime.mjs",
+  "typechecks": [
+    {
+      "fixture": "test/stranger/consumer.mts"
+    }
+  ],
+  "docs": {
+    "sigil": "list",
+    "home": {
+      "lead": "The shell client for hosting Apps: windows, commands, keys and the App directory.",
+      "example": {
+        "file": "home.ts",
+        "title": "Open a window",
+        "caption": "Create a window manager over your own mount adapter and open one window."
+      },
+      "ladder": {
+        "start": [
+          {
+            "title": "Quickstart",
+            "href": "/quickstart/",
+            "description": "Open a window through your own mount adapter."
+          }
+        ],
+        "tasks": [
+          {
+            "title": "Core concepts",
+            "href": "/concepts/",
+            "description": "Window manager, command host, keys and directory rows."
+          }
+        ],
+        "reference": [
+          {
+            "title": "API reference",
+            "href": "/api/",
+            "description": "Browse every entry, type and schema."
+          },
+          {
+            "title": "Install",
+            "href": "/install/",
+            "description": "The nine entrypoints and their dependencies."
+          },
+          {
+            "title": "Status and limits",
+            "href": "/status/",
+            "description": "Authority, limits and license."
+          }
+        ]
+      }
+    }
+  }
+}

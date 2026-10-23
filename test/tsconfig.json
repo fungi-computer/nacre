@@ -1,0 +1,7 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["*.ts", "stranger/*.mts"],
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM", "DOM.Iterable"]
+  }
+}

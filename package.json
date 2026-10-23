@@ -1,0 +1,101 @@
+{
+  "name": "@fungi.computer/nacre",
+  "version": "0.0.1",
+  "author": "Levi <levi@technomancy.dev>",
+  "description": "The shell client for hosting Apps: workbench, command host, keys, commands, window manager and App directory rows",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./workbench": {
+      "types": "./dist/workbench.d.ts",
+      "import": "./dist/workbench.js"
+    },
+    "./shell-module": {
+      "types": "./dist/shell-module.d.ts",
+      "import": "./dist/shell-module.js"
+    },
+    "./command-host": {
+      "types": "./dist/command-host.d.ts",
+      "import": "./dist/command-host.js"
+    },
+    "./keys": {
+      "types": "./dist/keys.d.ts",
+      "import": "./dist/keys.js"
+    },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js"
+    },
+    "./window-manager": {
+      "types": "./dist/window-manager.d.ts",
+      "import": "./dist/window-manager.js"
+    },
+    "./app-directory": {
+      "types": "./dist/app-directory.d.ts",
+      "import": "./dist/app-directory.js"
+    },
+    "./workbench-directory": {
+      "types": "./dist/workbench-directory.d.ts",
+      "import": "./dist/workbench-directory.js"
+    }
+  },
+  "files": [
+    "dist",
+    "docs/api",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint src test --max-warnings=0 && ../../node_modules/.bin/oxlint --config ../../oxlint.config.ts --deny-warnings src test",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json --noEmit",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json",
+    "clean": "node --input-type=module --eval \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\"",
+    "test": "vitest run",
+    "test:unit": "pnpm run test",
+    "docs": "tsx ../../tooling/repository/src/docs/cli.ts check --root ../..",
+    "docs:write": "tsx ../../tooling/repository/src/docs/cli.ts write --root ../..",
+    "pack": "mkdir -p ../../.botanical/nacre-pack && pnpm pack --pack-destination ../../.botanical/nacre-pack",
+    "smoke": "node test/stranger/runtime.mjs",
+    "stranger": "tsx ../../tooling/repository/src/artifacts/cli.ts --repo-root ../.. .",
+    "format:check": "node ../../tooling/repository/scripts/format-package-check.mjs",
+    "lint:anti-slop": "node ../../tooling/repository/scripts/lint-package-anti-slop.mjs"
+  },
+  "dependencies": {
+    "@fungi.computer/agar": "workspace:*",
+    "@fungi.computer/ear-tag": "workspace:*",
+    "@fungi.computer/gills": "workspace:*",
+    "@fungi.computer/puffball": "workspace:*",
+    "@fungi.computer/whistle": "workspace:*",
+    "effect": "4.0.2",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  },
+  "botanical": {
+    "role": "package",
+    "operations": {
+      "lint": "required",
+      "typecheck": "required",
+      "build": "required",
+      "test": "required",
+      "docs": "required",
+      "pack": "required",
+      "smoke": "required",
+      "stranger": "required"
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fungi-computer/nacre.git"
+  }
+}
