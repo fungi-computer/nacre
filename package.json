@@ -1,6 +1,6 @@
 {
   "name": "@fungi.computer/nacre",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Levi <levi@technomancy.dev>",
   "description": "The shell client for hosting Apps: workbench, command host, keys, commands, window manager and App directory rows",
   "type": "module",
