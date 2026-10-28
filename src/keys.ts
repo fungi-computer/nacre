@@ -1,5 +1,6 @@
 import type {
   WhistleBindingProjection,
+  WhistleCommandKey,
   WhistleExecutionInput,
   WhistleExecutionOutcome,
   WhistleSnapshot,
@@ -141,7 +142,7 @@ export type ShellKeyHost = Readonly<{
   subscribe: (listener: () => void) => () => void;
   /** Run a command through the host with the original input origin. */
   execute: (
-    commandId: string,
+    command: WhistleCommandKey,
     input: WhistleExecutionInput,
   ) => Promise<WhistleExecutionOutcome>;
 }>;
@@ -169,12 +170,14 @@ export function installShellKeys(
   host: ShellKeyHost,
   mac: boolean,
 ): () => void {
-  let chords: readonly Readonly<{ commandId: string; chord: ShellChord }>[] =
-    [];
+  let chords: readonly Readonly<{
+    command: WhistleCommandKey;
+    chord: ShellChord;
+  }>[] = [];
   const refresh = (): void => {
-    chords = host.active().bindings.flatMap(({ binding, commandId }) => {
+    chords = host.active().bindings.flatMap(({ binding, command }) => {
       const chord = parseChord(binding, mac);
-      return chord === null ? [] : [{ commandId, chord }];
+      return chord === null ? [] : [{ command, chord }];
     });
   };
   const onKeyDown = (event: KeyboardEvent): void => {
@@ -187,7 +190,7 @@ export function installShellKeys(
     if (match === undefined) return;
     event.preventDefault();
     void host
-      .execute(match.commandId, { origin: "keyboard" })
+      .execute(match.command, { origin: "keyboard" })
       .catch((cause: unknown) => {
         console.warn("Shell key command failed", cause);
       });

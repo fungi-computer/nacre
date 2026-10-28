@@ -82,13 +82,16 @@ import type {
 } from "@fungi.computer/agar/host";
 import {
   createWhistle,
+  sameWhistleCommand,
   scopeSnapshot,
   type WhistleExecutionInput,
   type WhistleExecutionOutcome,
   type WhistleContribution,
   type WhistleContributionLease,
   type WhistleCommand,
+  type WhistleCommandKey,
   type WhistleMenuProjection,
+  type WhistleProjectionRow,
   type WhistlePresenter,
   type WhistleRuntime,
   type WhistleSnapshot,
@@ -97,6 +100,11 @@ import {
 type RegisterCommandsInput = Parameters<AppHostHandlers["registerCommands"]>[0];
 type RegisterCommands = AppHostHandlers["registerCommands"];
 const emptyMenu: readonly WhistleMenuProjection[] = Object.freeze([]);
+/** The shell command an App's reserved command-palette chord runs. */
+const commandPaletteCommand: WhistleCommandKey = Object.freeze({
+  namespace: "shell",
+  id: "show-command-palette",
+});
 const commandPaletteReservedChord: AppHostReservedChord = Object.freeze({
   altKey: false,
   ctrlKey: false,
@@ -124,6 +132,27 @@ export function commandPaletteReservedChordForUserAgent(
   return commandPaletteReservedChordForPlatform(
     /Mac|iPhone|iPad/u.test(userAgent),
   );
+}
+
+/** One App command, named by its surface and its declared command id. */
+export type AppCommandTarget = Readonly<{
+  /** The App surface, such as `installation:inkcap`. */
+  surfaceId: string;
+  /** The command id the App's Release declares. */
+  commandId: string;
+}>;
+
+/**
+ * The typed Whistle identity of a command a mounted App surface contributed:
+ * each mounted surface owns the Whistle namespace named by its surface id.
+ *
+ * @param target - The App surface and its declared command id.
+ * @returns The key every snapshot row of that command carries as `command`.
+ */
+export function appSurfaceCommandKey(
+  target: AppCommandTarget,
+): WhistleCommandKey {
+  return Object.freeze({ namespace: target.surfaceId, id: target.commandId });
 }
 
 /** Whistle source of Release-advertised rows for Apps not yet mounted. */
@@ -154,11 +183,21 @@ export type AppSurfaceCommandMount = Readonly<{
 
 /** Commands owned by one pane, projected to globals plus its focus scope. */
 export type PaneCommands = Readonly<{
-  /** Qualify a locally contributed id in this pane's own namespace. */
-  commandId: (id: string) => string;
-  /** Contribute or replace commands owned by this pane through the returned lease. */
+  /**
+   * The key of a command this pane contributed.
+   *
+   * @param id - The command's local id.
+   * @param group - The group it was contributed under, if any.
+   */
+  command: (id: string, group?: string) => WhistleCommandKey;
+  /**
+   * Contribute or replace commands owned by this pane through the returned
+   * lease. A group gives one embedded source (such as a Parakeet contribution)
+   * its own namespace inside the pane, so its ids never collide with others.
+   */
   contribute: (
     commands: readonly WhistleCommand<never>[],
+    group?: string,
   ) => WhistleContributionLease;
   /** Run a command by id. */
   execute: WhistleRuntime["execute"];
@@ -201,6 +240,13 @@ export type AppSurfaceCommandHost = Readonly<{
     }>[],
     run: (surfaceId: string, commandId: string) => Promise<void>,
   ) => () => void;
+  /**
+   * The App command a snapshot row runs: a mounted App's own row, or a
+   * directory row that opens its App first. Shell and pane rows have none.
+   */
+  readonly appCommand: (
+    row: Pick<WhistleProjectionRow, "command" | "sourceId">,
+  ) => AppCommandTarget | undefined;
   /** Read the menu rows belonging to the focused App. */
   readonly menu: () => readonly WhistleMenuProjection[];
   /**
@@ -210,7 +256,7 @@ export type AppSurfaceCommandHost = Readonly<{
   readonly active: () => WhistleSnapshot;
   /** Execute an active row, an agent row, or an exact programmatic action. */
   readonly execute: (
-    commandId: string,
+    command: WhistleCommandKey,
     input: WhistleExecutionInput,
   ) => Promise<WhistleExecutionOutcome>;
   /** Read the complete renderer-neutral graph for host consumers. */
@@ -411,7 +457,7 @@ export function createAppSurfaceCommandHost(
     }
     return {
       sourceId: mount.id,
-      namespace: encodeURIComponent(mount.id),
+      namespace: mount.id,
       scope: mount.id,
       commands: commands.map((command): WhistleCommand<never> => {
         // Agar carries a static availability fact; Whistle evaluates availability
@@ -499,7 +545,9 @@ export function createAppSurfaceCommandHost(
       if (state.disposed || input.id !== commandPaletteReservedChord.id)
         throw new Error("App reserved chord is unavailable");
       if (input.repeat) return;
-      const outcome = await execute(input.id, { origin: "browser" });
+      const outcome = await execute(commandPaletteCommand, {
+        origin: "browser",
+      });
       if (outcome.status !== "handled")
         throw new Error("App reserved chord could not run");
     };
@@ -519,15 +567,17 @@ export function createAppSurfaceCommandHost(
       Object.freeze({
         snapshot: agentSnapshot,
         execute: (
-          commandId: string,
+          command: WhistleCommandKey,
           input: WhistleExecutionInput,
         ): Promise<WhistleExecutionOutcome> => {
           if (
             input.origin !== "agent" ||
-            !agentSnapshot().agent.some((row) => row.commandId === commandId)
+            !agentSnapshot().agent.some((row) =>
+              sameWhistleCommand(row.command, command),
+            )
           )
             return Promise.resolve({ status: "missing" });
-          return execute(commandId, input);
+          return execute(command, input);
         },
       });
     return Object.freeze({
@@ -553,10 +603,13 @@ export function createAppSurfaceCommandHost(
       throw new Error("Pane command mount ID must not be blank");
     if (mounts.has(paneId) || panes.has(paneId))
       throw new Error("Pane command mount ID is already active");
-    const namespace = `pane-${encodeURIComponent(paneId)}`;
+    const namespace = `pane:${paneId}`;
+    // A group is a namespace nested under the pane's own.
+    const groupNamespace = (group: string | undefined) =>
+      group === undefined ? namespace : `${namespace}/${group}`;
     const ownedCommands = new Map<
       WhistleContributionLease,
-      ReadonlySet<string>
+      readonly WhistleCommandKey[]
     >();
     const state: PaneState = {
       disposed: false,
@@ -595,28 +648,32 @@ export function createAppSurfaceCommandHost(
             );
     };
     return Object.freeze({
-      commandId: (id: string) => `${namespace}:${id}`,
-      contribute: (commands: readonly WhistleCommand<never>[]) => {
+      command: (id: string, group?: string) =>
+        Object.freeze({ namespace: groupNamespace(group), id }),
+      contribute: (
+        commands: readonly WhistleCommand<never>[],
+        group?: string,
+      ) => {
         assertPaneLive();
         checkBindings(commands);
+        const contributed = groupNamespace(group);
         const underlying = whistle.contribute({
           sourceId: `pane:${paneId}`,
-          namespace,
+          namespace: contributed,
           scope: paneId,
           commands,
         });
+        const keys = (next: readonly WhistleCommand<never>[]) =>
+          next.map((command) =>
+            Object.freeze({ namespace: contributed, id: command.id }),
+          );
         let active = true;
         const lease: WhistleContributionLease = Object.freeze({
           update: (replacement: readonly WhistleCommand<never>[]) => {
             if (!active || state.disposed || disposed) return;
             checkBindings(replacement);
             underlying.update(replacement);
-            ownedCommands.set(
-              lease,
-              new Set(
-                replacement.map((command) => `${namespace}:${command.id}`),
-              ),
-            );
+            ownedCommands.set(lease, keys(replacement));
           },
           dispose: () => {
             if (!active) return;
@@ -627,13 +684,10 @@ export function createAppSurfaceCommandHost(
           },
         });
         state.leases.add(lease);
-        ownedCommands.set(
-          lease,
-          new Set(commands.map((command) => `${namespace}:${command.id}`)),
-        );
+        ownedCommands.set(lease, keys(commands));
         return lease;
       },
-      execute: (commandId: string, input: WhistleExecutionInput) => {
+      execute: (command: WhistleCommandKey, input: WhistleExecutionInput) => {
         const snapshot = state.snapshot;
         const rows =
           input.origin === "agent"
@@ -650,11 +704,13 @@ export function createAppSurfaceCommandHost(
         // or palette projection. Its contribution still belongs to this pane.
         const owned =
           input.origin !== "agent" &&
-          [...ownedCommands.values()].some((ids) => ids.has(commandId));
+          [...ownedCommands.values()].some((keys) =>
+            keys.some((key) => sameWhistleCommand(key, command)),
+          );
         const admitted =
           owned ||
           rows.some((projection) =>
-            projection.some((row) => row.commandId === commandId),
+            projection.some((row) => sameWhistleCommand(row.command, command)),
           );
         const human =
           input.origin !== "programmatic" && input.origin !== "agent";
@@ -665,7 +721,7 @@ export function createAppSurfaceCommandHost(
           (human && focusedMount !== paneId)
         )
           return Promise.resolve({ status: "missing" } as const);
-        return whistle.execute(commandId, input);
+        return whistle.execute(command, input);
       },
       snapshot: () => state.snapshot,
       subscribe: (listener: () => void) => {
@@ -726,18 +782,24 @@ export function createAppSurfaceCommandHost(
     };
   };
 
+  // Directory rows share one namespace; each row's local id is an opaque
+  // index whose App command target this map holds.
+  let directoryTargets: ReadonlyMap<string, AppCommandTarget> = new Map();
   const registerDirectoryCommands: AppSurfaceCommandHost["registerDirectoryCommands"] =
     (rows, run) => {
       assertLive();
       directoryContribution?.dispose();
+      const targets = new Map<string, AppCommandTarget>();
       const contribution = whistle.contribute({
         sourceId: appDirectorySourceId,
-        namespace: "app-directory",
-        commands: rows.flatMap(({ surfaceId, appTitle, command }) => {
+        namespace: appDirectorySourceId,
+        commands: rows.flatMap(({ surfaceId, appTitle, command }, index) => {
           const palette = command.projections?.palette;
           if (palette === undefined) return [];
+          const id = `entry-${String(index)}`;
+          targets.set(id, Object.freeze({ surfaceId, commandId: command.id }));
           const projected: WhistleCommand<never> = {
-            id: `${encodeURIComponent(surfaceId)}-${encodeURIComponent(command.id)}`,
+            id,
             title: command.title,
             category: `${appTitle} · ${command.category}`,
             projections: {
@@ -752,42 +814,55 @@ export function createAppSurfaceCommandHost(
         }),
       });
       directoryContribution = contribution;
+      directoryTargets = targets;
       let active = true;
       return () => {
         if (!active) return;
         active = false;
         contribution.dispose();
-        if (directoryContribution === contribution)
+        if (directoryContribution === contribution) {
           directoryContribution = undefined;
+          directoryTargets = new Map();
+        }
       };
     };
 
+  const appCommand: AppSurfaceCommandHost["appCommand"] = (row) => {
+    if (row.sourceId === appDirectorySourceId)
+      return row.command.namespace === appDirectorySourceId
+        ? directoryTargets.get(row.command.id)
+        : undefined;
+    return mounts.has(row.sourceId) && row.command.namespace === row.sourceId
+      ? Object.freeze({ surfaceId: row.sourceId, commandId: row.command.id })
+      : undefined;
+  };
+
   const menu = (): readonly WhistleMenuProjection[] => focusedMenu;
-  const isActive = (commandId: string): boolean => {
+  const isActive = (command: WhistleCommandKey): boolean => {
     const { bindings, palette, slash, help, menu: rows } = activeSnapshot;
     return [bindings, palette, slash, help, rows].some((projection) =>
-      projection.some((row) => row.commandId === commandId),
+      projection.some((row) => sameWhistleCommand(row.command, command)),
     );
   };
 
   const execute = async (
-    commandId: string,
+    command: WhistleCommandKey,
     input: WhistleExecutionInput,
   ): Promise<WhistleExecutionOutcome> => {
     if (
       input.origin === "agent" &&
       !whistle
         .snapshot()
-        .agent.some((command) => command.commandId === commandId)
+        .agent.some((row) => sameWhistleCommand(row.command, command))
     )
       return { status: "missing" };
     if (
       input.origin !== "programmatic" &&
       input.origin !== "agent" &&
-      !isActive(commandId)
+      !isActive(command)
     )
       return { status: "missing" };
-    return whistle.execute(commandId, input);
+    return whistle.execute(command, input);
   };
 
   const dispose = (): void => {
@@ -805,6 +880,7 @@ export function createAppSurfaceCommandHost(
     shellContribution = undefined;
     directoryContribution?.dispose();
     directoryContribution = undefined;
+    directoryTargets = new Map();
     mounts.clear();
     focusedMount = null;
     focusedMenu = emptyMenu;
@@ -820,6 +896,7 @@ export function createAppSurfaceCommandHost(
     focus,
     registerShellCommands,
     registerDirectoryCommands,
+    appCommand,
     menu,
     active: () => activeSnapshot,
     execute,

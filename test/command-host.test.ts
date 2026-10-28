@@ -4,6 +4,7 @@ import { createWhistle, type WhistleRuntime } from "@fungi.computer/whistle";
 import { describe, expect, it, vi } from "vitest";
 import {
   commandPaletteReservedChordForPlatform,
+  appSurfaceCommandKey,
   createAppSurfaceCommandHost,
   type AppCommandDeclaration,
 } from "../src/command-host.js";
@@ -46,12 +47,21 @@ describe("Hub App surface command host", () => {
       expect(view.snapshot().agent.map((row) => row.commandId)).toEqual([
         "first:paint",
       ]);
-      expect(await view.execute("first:paint", { origin: "agent" })).toEqual({
+      expect(
+        await view.execute(
+          { namespace: "first", id: "paint" },
+          { origin: "agent" },
+        ),
+      ).toEqual({
         status: "handled",
         result: "first",
       });
-      for (const id of ["other:paint", "first:human", "shell:global"])
-        expect(await view.execute(id, { origin: "agent" })).toEqual({
+      for (const key of [
+        { namespace: "other", id: "paint" },
+        { namespace: "first", id: "human" },
+        { namespace: "shell", id: "global" },
+      ])
+        expect(await view.execute(key, { origin: "agent" })).toEqual({
           status: "missing",
         });
       expect(invoke).toHaveBeenCalledOnce();
@@ -59,7 +69,12 @@ describe("Hub App surface command host", () => {
       expect(view.snapshot().agent.map((row) => row.commandId)).toEqual([
         "first:replace",
       ]);
-      expect(await view.execute("first:paint", { origin: "agent" })).toEqual({
+      expect(
+        await view.execute(
+          { namespace: "first", id: "paint" },
+          { origin: "agent" },
+        ),
+      ).toEqual({
         status: "missing",
       });
       first.dispose();
@@ -69,11 +84,19 @@ describe("Hub App surface command host", () => {
         invoke: () => Promise.resolve("replacement"),
       });
       expect(view.snapshot().agent).toEqual([]);
-      expect(await view.execute("first:paint", { origin: "agent" })).toEqual({
+      expect(
+        await view.execute(
+          { namespace: "first", id: "paint" },
+          { origin: "agent" },
+        ),
+      ).toEqual({
         status: "missing",
       });
       expect(
-        await next.agentCommands.execute("first:paint", { origin: "agent" }),
+        await next.agentCommands.execute(
+          { namespace: "first", id: "paint" },
+          { origin: "agent" },
+        ),
       ).toEqual({ status: "handled", result: "replacement" });
       host.dispose();
       expect(next.agentCommands.snapshot().agent).toEqual([]);
@@ -95,8 +118,7 @@ describe("Hub App surface command host", () => {
     other.contribute([{ ...command("first"), handler: () => "other" }]);
     expect(pane.snapshot().menu).toHaveLength(2);
     expect(
-      new Set(pane.snapshot().menu.map((row) => row.commandId.split(":")[0]))
-        .size,
+      new Set(pane.snapshot().menu.map((row) => row.command.namespace)).size,
     ).toBe(1);
     expect(() =>
       pane.contribute([{ ...command("first"), handler: () => undefined }]),
@@ -111,7 +133,7 @@ describe("Hub App surface command host", () => {
     host.focus("conversation:one");
     const oldId = pane
       .snapshot()
-      .menu.find((row) => row.title === "first")?.commandId;
+      .menu.find((row) => row.title === "first")?.command;
     if (oldId === undefined) throw new Error("first command absent");
     first.update([{ ...command("replacement"), handler: () => "replacement" }]);
     expect(pane.snapshot().menu.map((row) => row.title)).toEqual([
@@ -152,7 +174,7 @@ describe("Hub App surface command host", () => {
         handler: () => "changed",
       },
     ]);
-    const id = first.commandId("catalog-action");
+    const id = first.command("catalog-action");
     host.focus("first");
     expect(await first.execute(id, { origin: "menu" })).toMatchObject({
       status: "handled",
@@ -232,11 +254,18 @@ describe("Hub App surface command host", () => {
       const row = host.snapshot().agent[0];
       if (row === undefined)
         throw new Error("Missing registered Agent command");
-      expect(row.commandId).toBe(
-        "default%3Aapp_mediaproof:inspect-generation-draft",
+      expect(row.command).toEqual(
+        appSurfaceCommandKey({
+          surfaceId: "default:app_mediaproof",
+          commandId: "inspect-generation-draft",
+        }),
       );
+      expect(host.appCommand(row)).toEqual({
+        surfaceId: "default:app_mediaproof",
+        commandId: "inspect-generation-draft",
+      });
       await expect(
-        host.execute(row.commandId, { origin: "agent" }),
+        host.execute(row.command, { origin: "agent" }),
       ).resolves.toMatchObject({
         status: "handled",
         result: "inspect-generation-draft",
@@ -331,11 +360,12 @@ describe("Hub App surface command host", () => {
         category: "Demo · Workspace",
         title: "Open project",
       });
-      expect(row.commandId).toBe(
-        "app-directory:installation%3Ademo-open-project",
-      );
+      expect(host.appCommand(row)).toEqual({
+        surfaceId: "installation:demo",
+        commandId: "open-project",
+      });
       await expect(
-        host.execute(row.commandId, { origin: "palette" }),
+        host.execute(row.command, { origin: "palette" }),
       ).resolves.toMatchObject({ status: "handled" });
       expect(run).toHaveBeenCalledWith("installation:demo", "open-project");
     } finally {
@@ -364,7 +394,10 @@ describe("Hub App surface command host", () => {
       "inkcap-window:save",
     ]);
     await expect(
-      host.execute("inkcap-window:save", { origin: "menu" }),
+      host.execute(
+        { namespace: "inkcap-window", id: "save" },
+        { origin: "menu" },
+      ),
     ).resolves.toMatchObject({ status: "handled", result: "inkcap:save" });
     expect(inkcapInvoke.mock.calls[0]?.[0]).toBe("save");
     expect(inkcapInvoke.mock.calls[0]?.[1]?.origin).toBe("menu");
@@ -376,10 +409,16 @@ describe("Hub App surface command host", () => {
       "media-window:open",
     ]);
     await expect(
-      host.execute("inkcap-window:save", { origin: "menu" }),
+      host.execute(
+        { namespace: "inkcap-window", id: "save" },
+        { origin: "menu" },
+      ),
     ).resolves.toEqual({ status: "missing" });
     await expect(
-      host.execute("inkcap-window:save", { origin: "programmatic" }),
+      host.execute(
+        { namespace: "inkcap-window", id: "save" },
+        { origin: "programmatic" },
+      ),
     ).resolves.toMatchObject({ status: "handled", result: "inkcap:save" });
     expect(inkcapInvoke.mock.calls[1]?.[1]?.origin).toBe("programmatic");
     inkcapMount.dispose();
@@ -421,10 +460,16 @@ describe("Hub App surface command host", () => {
       "second-window:new",
     ]);
     await expect(
-      host.execute("second-window:new", { origin: "keyboard" }),
+      host.execute(
+        { namespace: "second-window", id: "new" },
+        { origin: "keyboard" },
+      ),
     ).resolves.toMatchObject({ status: "handled", result: "second:new" });
     await expect(
-      host.execute("first-window:new", { origin: "keyboard" }),
+      host.execute(
+        { namespace: "first-window", id: "new" },
+        { origin: "keyboard" },
+      ),
     ).resolves.toEqual({ status: "missing" });
 
     host.focus("first-window");
@@ -432,7 +477,10 @@ describe("Hub App surface command host", () => {
       "first-window:new",
     ]);
     await expect(
-      host.execute("first-window:new", { origin: "palette" }),
+      host.execute(
+        { namespace: "first-window", id: "new" },
+        { origin: "palette" },
+      ),
     ).resolves.toMatchObject({ status: "handled", result: "first:new" });
     expect(firstInvoke).toHaveBeenCalledTimes(1);
 
@@ -467,7 +515,7 @@ describe("Hub App surface command host", () => {
       "first:replacement",
     ]);
     await expect(
-      host.execute("first:old", { origin: "menu" }),
+      host.execute({ namespace: "first", id: "old" }, { origin: "menu" }),
     ).resolves.toEqual({ status: "missing" });
 
     firstMount.dispose();
@@ -582,7 +630,10 @@ describe("Hub App surface command host", () => {
         "shell:open-app",
       ]);
       await expect(
-        host.execute("shell:open-app", { origin: "keyboard" }),
+        host.execute(
+          { namespace: "shell", id: "open-app" },
+          { origin: "keyboard" },
+        ),
       ).resolves.toMatchObject({ status: "handled" });
       const appMount = host.mount("focused-app", [
         {
@@ -641,14 +692,17 @@ describe("Hub App surface command host", () => {
       expect(openApp).toHaveBeenCalledOnce();
       expect(showKeys).toHaveBeenCalledOnce();
       expect(
-        await host.execute("shell:open-other-app", { origin: "browser" }),
+        await host.execute(
+          { namespace: "shell", id: "open-other-app" },
+          { origin: "browser" },
+        ),
       ).toEqual({ status: "missing" });
     } finally {
       disposeShell();
       expect(
         host
           .snapshot()
-          .palette.some((row) => row.commandId.startsWith("shell:")),
+          .palette.some((row) => row.command.namespace === "shell"),
       ).toBe(false);
       host.dispose();
     }
@@ -675,19 +729,19 @@ it("a pane admits only its own snapshot under human, programmatic and agent orig
   ]);
   const ownId = first
     .snapshot()
-    .agent.find((item) => item.scope === "a")?.commandId;
+    .agent.find((item) => item.scope === "a")?.command;
   const foreignId = second
     .snapshot()
-    .agent.find((item) => item.scope === "b")?.commandId;
+    .agent.find((item) => item.scope === "b")?.command;
   const globalId = first
     .snapshot()
-    .agent.find((item) => item.scope === undefined)?.commandId;
+    .agent.find((item) => item.scope === undefined)?.command;
   if (ownId === undefined || foreignId === undefined || globalId === undefined)
     throw new Error("Missing fixture commands");
   try {
-    expect(first.snapshot().agent.map((item) => item.commandId)).not.toContain(
-      foreignId,
-    );
+    expect(
+      first.snapshot().agent.map((item) => item.command),
+    ).not.toContainEqual(foreignId);
     for (const focus of ["a", "b"]) {
       host.focus(focus);
       for (const origin of ["menu", "programmatic", "agent"] as const)
@@ -736,7 +790,7 @@ it("disposing the focused pane clears focus before its identity can be reused", 
   replacement.contribute([{ ...command("new"), handler: () => "new" }]);
   const id = replacement
     .snapshot()
-    .menu.find((row) => row.title === "new")?.commandId;
+    .menu.find((row) => row.title === "new")?.command;
   if (id === undefined) throw new Error("Missing replacement command");
   try {
     expect(host.active().menu).toEqual([]);
