@@ -1,5 +1,17 @@
 # @fungi.computer/nacre
 
+## 0.1.2
+
+### Patch Changes
+
+- Changes since 0.1.1:
+
+  - fix(apps): require owner confirmation for every installation
+
+- Updated dependencies
+  - @fungi.computer/puffball@0.4.0
+  - @fungi.computer/agar@0.6.1
+
 ## 0.1.1
 
 ### Patch Changes

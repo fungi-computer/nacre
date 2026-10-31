@@ -255,14 +255,12 @@ export type AppGenerationPermissions = z.output<
   typeof appGenerationPermissionsSchema
 >;
 
-/** Whether an App may browse, buy, or install free marketplace entries. */
+/** Whether an App may browse or request marketplace acquisitions. */
 export const appMarketplacePermissionsSchema = z.strictObject({
   /** Whether the App may browse marketplace entries. */
   browse: z.boolean(),
-  /** Whether the App may buy marketplace entries. */
+  /** Whether the App may request an acquisition, confirmed by the owner. */
   purchase: z.boolean(),
-  /** Whether the App may install free marketplace entries. */
-  installFree: z.boolean(),
 });
 /** Decoded marketplace permissions attached to an App directory entry. */
 export type AppMarketplacePermissions = z.output<

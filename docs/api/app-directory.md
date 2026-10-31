@@ -378,13 +378,12 @@ const appMarketplacePermissionsSchema: ZodObject<
   {
     browse: ZodBoolean;
     purchase: ZodBoolean;
-    installFree: ZodBoolean;
   },
   $strict
 >;
 ```
 
-Whether an App may browse, buy, or install free marketplace entries.
+Whether an App may browse or request marketplace acquisitions.
 
 ---
 
@@ -458,7 +457,6 @@ const appDirectoryResponseSchema: ZodLazy<ZodObject<{
      marketplacePermissions: ZodObject<{
         browse: ZodBoolean;
         purchase: ZodBoolean;
-        installFree: ZodBoolean;
      }, $strict>;
      agentPermission: ZodDiscriminatedUnion<[ZodObject<{
         kind: ZodLiteral<...>;
