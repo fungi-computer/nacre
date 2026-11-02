@@ -172,6 +172,23 @@ export class ShellModuleError extends Error {
 }
 
 /**
+ * The picked shell's module could not be fetched or evaluated. A browser keeps
+ * a failed module fetch for the life of the document, so only loading the
+ * page again can recover it.
+ */
+export class ShellModuleUnavailable extends Error {
+  /** Always ShellModuleUnavailable. */
+  override readonly name = "ShellModuleUnavailable";
+  constructor(
+    /** The module URL that could not load. */
+    readonly moduleUrl: string,
+    options: ErrorOptions,
+  ) {
+    super("The picked shell could not be loaded", options);
+  }
+}
+
+/**
  * Import the picked shell Release's module from the host's own origin and
  * check that it exports `mountShell`, and `mountPlatformControls` when it
  * offers its own Settings. The host never bundles a shell.
@@ -186,9 +203,7 @@ export async function importShellModule(
   try {
     namespace = await import(/* @vite-ignore */ moduleUrl.href);
   } catch (cause) {
-    throw new ShellModuleError("The picked shell could not be loaded", {
-      cause,
-    });
+    throw new ShellModuleUnavailable(moduleUrl.href, { cause });
   }
   const decoded = shellModuleSchema().safeParse(namespace);
   if (!decoded.success)

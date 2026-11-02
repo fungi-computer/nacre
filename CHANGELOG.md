@@ -1,5 +1,18 @@
 # @fungi.computer/nacre
 
+## 0.1.3
+
+### Patch Changes
+
+- Changes since 0.1.2:
+
+  - fix(hub): reload once for a lost page or shell module
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.7.0
+  - @fungi.computer/puffball@0.5.0
+
 ## 0.1.2
 
 ### Patch Changes

@@ -4,6 +4,7 @@ import { defineGrants } from "@fungi.computer/ear-tag/grants";
 import {
   importShellModule,
   ShellModuleError,
+  ShellModuleUnavailable,
   type RequestShellAppAccess,
 } from "../src/shell-module.js";
 
@@ -32,6 +33,13 @@ describe("importShellModule", () => {
         "https://oyster.test",
       ),
     ).rejects.toBeInstanceOf(ShellModuleError);
+  });
+
+  it("types a module that cannot load as unavailable", async () => {
+    const url = moduleUrl("export const = ;");
+    await expect(importShellModule(url, url.origin)).rejects.toBeInstanceOf(
+      ShellModuleUnavailable,
+    );
   });
 
   it("refuses a module that does not export mountShell", async () => {
