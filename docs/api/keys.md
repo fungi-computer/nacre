@@ -58,7 +58,7 @@ One key offered after the leader chord, with the command it runs.
 type ShellKeyHost = Readonly<{
   active: () => WhistleSnapshot;
   subscribe: (listener) => () => void;
-  execute: (commandId, input) => Promise<WhistleExecutionOutcome>;
+  execute: (command, input) => Promise<WhistleExecutionOutcome>;
 }>;
 ```
 

@@ -81,6 +81,67 @@ Always ShellModuleError.
 Error.name;
 ```
 
+---
+
+### ShellModuleUnavailable
+
+The picked shell's module could not be fetched or evaluated. A browser keeps a
+failed module fetch for the life of the document, so only loading the page again
+can recover it.
+
+#### Extends
+
+- `Error`
+
+#### Constructors
+
+##### Constructor
+
+```ts
+new ShellModuleUnavailable(moduleUrl, options): ShellModuleUnavailable;
+```
+
+###### Parameters
+
+| Parameter   | Type           | Description                         |
+| ----------- | -------------- | ----------------------------------- |
+| `moduleUrl` | `string`       | The module URL that could not load. |
+| `options`   | `ErrorOptions` | -                                   |
+
+###### Returns
+
+[`ShellModuleUnavailable`](#shellmoduleunavailable)
+
+###### Overrides
+
+```ts
+Error.constructor;
+```
+
+#### Properties
+
+##### name
+
+```ts
+readonly name: "ShellModuleUnavailable" = "ShellModuleUnavailable";
+```
+
+Always ShellModuleUnavailable.
+
+###### Overrides
+
+```ts
+Error.name;
+```
+
+##### moduleUrl
+
+```ts
+readonly moduleUrl: string;
+```
+
+The module URL that could not load.
+
 ## Type Aliases
 
 ### ShellMountInput

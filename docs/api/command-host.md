@@ -80,6 +80,19 @@ grammar stays with its owner, which hands rows of this shape.
 
 ---
 
+### AppCommandTarget
+
+```ts
+type AppCommandTarget = Readonly<{
+  surfaceId: string;
+  commandId: string;
+}>;
+```
+
+One App command, named by its surface and its declared command id.
+
+---
+
 ### AppSurfaceCommandMount
 
 ```ts
@@ -98,8 +111,8 @@ The command side of one mounted App's host handlers.
 
 ```ts
 type PaneCommands = Readonly<{
-  commandId: (id) => string;
-  contribute: (commands) => WhistleContributionLease;
+  command: (id, group?) => WhistleCommandKey;
+  contribute: (commands, group?) => WhistleContributionLease;
   execute: WhistleRuntime["execute"];
   snapshot: WhistleRuntime["snapshot"];
   subscribe: WhistleRuntime["subscribe"];
@@ -133,9 +146,10 @@ type AppSurfaceCommandHost = Readonly<{
   focus: (mountId) => void;
   registerShellCommands: (commands) => () => void;
   registerDirectoryCommands: (commands, run) => () => void;
+  appCommand: (row) => AppCommandTarget | undefined;
   menu: () => readonly WhistleMenuProjection[];
   active: () => WhistleSnapshot;
-  execute: (commandId, input) => Promise<WhistleExecutionOutcome>;
+  execute: (command, input) => Promise<WhistleExecutionOutcome>;
   snapshot: () => WhistleSnapshot;
   subscribe: (listener) => () => void;
   dispose: () => void;
@@ -195,6 +209,29 @@ Select the shell command-palette chord from the embedding browser user agent.
 #### Returns
 
 `AppHostReservedChord`
+
+---
+
+### appSurfaceCommandKey()
+
+```ts
+function appSurfaceCommandKey(target): WhistleCommandKey;
+```
+
+The typed Whistle identity of a command a mounted App surface contributed: each
+mounted surface owns the Whistle namespace named by its surface id.
+
+#### Parameters
+
+| Parameter | Type                                    | Description                                  |
+| --------- | --------------------------------------- | -------------------------------------------- |
+| `target`  | [`AppCommandTarget`](#appcommandtarget) | The App surface and its declared command id. |
+
+#### Returns
+
+`WhistleCommandKey`
+
+The key every snapshot row of that command carries as `command`.
 
 ---
 

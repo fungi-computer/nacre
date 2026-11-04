@@ -418,7 +418,8 @@ The shell unmounted: stop notifying its callbacks.
 mount(
    container,
    input,
-   events
+   events,
+   signal
 ): Promise<WorkbenchChildHandle>;
 ```
 
@@ -433,6 +434,7 @@ slot in that App's window. The host never moves the child: the shell keeps
 | `container` | `HTMLElement`                                           |
 | `input`     | [`WorkbenchChildLaunch`](#workbenchchildlaunch)         |
 | `events`    | [`TeamWorkbenchChildEvents`](#teamworkbenchchildevents) |
+| `signal`    | `AbortSignal`                                           |
 
 ###### Returns
 
@@ -476,6 +478,7 @@ TeamWorkbenchHostHandle.reportAgentSessionSelection;
 ```ts
 type TeamWorkbenchChildEvents = WorkbenchChildEvents &
   Readonly<{
+    onDeliveryPending?: () => void;
     onAgentSessionSelection: (selection) => Promise<void>;
   }>;
 ```
@@ -662,7 +665,8 @@ while covered.
 mount(
    container,
    input,
-   events
+   events,
+   signal
 ): Promise<WorkbenchChildHandle>;
 ```
 
@@ -677,6 +681,7 @@ slot in that App's window. The host never moves the child: the shell keeps
 | `container` | `HTMLElement`                                           |
 | `input`     | [`WorkbenchChildLaunch`](#workbenchchildlaunch)         |
 | `events`    | [`TeamWorkbenchChildEvents`](#teamworkbenchchildevents) |
+| `signal`    | `AbortSignal`                                           |
 
 ###### Returns
 
@@ -1606,6 +1611,18 @@ Re-exports
 
 ---
 
+### AppCommandTarget
+
+Re-exports [AppCommandTarget](command-host.md#appcommandtarget)
+
+---
+
+### appSurfaceCommandKey
+
+Re-exports [appSurfaceCommandKey](command-host.md#appsurfacecommandkey)
+
+---
+
 ### appDirectorySourceId
 
 Re-exports [appDirectorySourceId](command-host.md#appdirectorysourceid)
@@ -1792,6 +1809,20 @@ Re-exports [ShellKeyHost](keys.md#shellkeyhost)
 ### installShellKeys
 
 Re-exports [installShellKeys](keys.md#installshellkeys)
+
+---
+
+### APP\_SURFACE\_DOCUMENT\_TIMEOUT\_MS
+
+Re-exports
+[APP_SURFACE_DOCUMENT_TIMEOUT_MS](window-manager.md#app_surface_document_timeout_ms)
+
+---
+
+### prepareWithDeliveryRetry
+
+Re-exports
+[prepareWithDeliveryRetry](window-manager.md#preparewithdeliveryretry)
 
 ---
 

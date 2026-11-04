@@ -11,7 +11,8 @@
     "src/commands.ts",
     "src/window-manager.ts",
     "src/app-directory.ts",
-    "src/workbench-directory.ts"
+    "src/workbench-directory.ts",
+    "src/website-channels.ts"
   ],
   "tsconfig": "tsconfig.json",
   "out": "docs/api"

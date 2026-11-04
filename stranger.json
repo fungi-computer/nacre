@@ -16,6 +16,8 @@
     "package/dist/keys.js",
     "package/dist/shell-module.d.ts",
     "package/dist/shell-module.js",
+    "package/dist/website-channels.d.ts",
+    "package/dist/website-channels.js",
     "package/dist/window-manager.d.ts",
     "package/dist/window-manager.js",
     "package/dist/workbench-contract.d.ts",

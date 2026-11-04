@@ -25,7 +25,8 @@ Minimum identity required to own a window across mount generations.
 ### WindowStatus
 
 ```ts
-type WindowStatus = "loading" | "ready" | "minimized" | "error";
+type WindowStatus =
+  "loading" | "getting-ready" | "ready" | "minimized" | "error";
 ```
 
 Current presentation state of a managed window.
@@ -61,6 +62,7 @@ with it.
 
 ```ts
 type WindowEvents = Readonly<{
+  onDeliveryPending?: () => void;
   onComputerChoice: () => Promise<void>;
   onNavigationState: (state) => void;
   onStatusItems: (items) => void;
@@ -211,7 +213,48 @@ Host adapters used to create, attach and validate window mounts.
 | `Launch` _extends_ [`WindowLaunch`](#windowlaunch) |
 | `Container`                                        |
 
+## Variables
+
+### APP\_SURFACE\_DOCUMENT\_TIMEOUT\_MS
+
+```ts
+const APP_SURFACE_DOCUMENT_TIMEOUT_MS: 30000 = 30_000;
+```
+
+Existing cold-document bound, also used as one total preparation budget.
+
 ## Functions
+
+### prepareWithDeliveryRetry()
+
+```ts
+function prepareWithDeliveryRetry<A>(prepare, signal, onPending): Promise<A>;
+```
+
+Shell-only preparation retry. No document, connection or mounted operation
+belongs inside `prepare`. Each fetch receives the interruptible attempt's
+signal; the absolute budget covers both requests and backoff, never resets, and
+is released as soon as preparation succeeds.
+
+#### Type Parameters
+
+| Type Parameter |
+| -------------- |
+| `A`            |
+
+#### Parameters
+
+| Parameter   | Type                           |
+| ----------- | ------------------------------ |
+| `prepare`   | (`signal`) => `Promise`\<`A`\> |
+| `signal`    | `AbortSignal`                  |
+| `onPending` | () => `void`                   |
+
+#### Returns
+
+`Promise`\<`A`\>
+
+---
 
 ### hasVisibleWindows()
 

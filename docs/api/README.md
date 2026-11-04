@@ -16,6 +16,7 @@
 | [index](index.md)                             | -           |
 | [keys](keys.md)                               | -           |
 | [shell-module](shell-module.md)               | -           |
+| [website-channels](website-channels.md)       | -           |
 | [window-manager](window-manager.md)           | -           |
 | [workbench-directory](workbench-directory.md) | -           |
 | [workbench](workbench.md)                     | -           |

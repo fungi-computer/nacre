@@ -1,5 +1,21 @@
 # @fungi.computer/nacre
 
+## 0.2.0
+
+### Minor Changes
+
+- Changes since 0.1.4:
+
+  - fix(oyster,hub): classify the website routes and keep Shiitake's client out
+    of the Team bundle
+  - fix(oyster): satisfy the lint and suppression budgets for the website
+    channel
+  - fix(nacre): narrow transcript content through a predicate and document its
+    parts
+  - fix(oyster): resolve the website directory when a route runs, not when its
+    table is built
+  - feat(oyster): serve website chat from a self-hosted Oyster
+
 ## 0.1.4
 
 ### Patch Changes
