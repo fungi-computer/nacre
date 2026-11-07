@@ -1,5 +1,20 @@
 # @fungi.computer/nacre
 
+## 0.2.1
+
+### Patch Changes
+
+- Changes since 0.2.0:
+
+  - fix(nacre): retain cleanup ownership across window transitions
+  - fix(oyster): qualify the packed dependency inventory for strangers
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.7.2
+  - @fungi.computer/gills@0.2.2
+  - @fungi.computer/puffball@0.5.2
+
 ## 0.2.0
 
 ### Minor Changes

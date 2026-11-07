@@ -897,7 +897,15 @@ export function createWindowManager<Launch extends WindowLaunch, Container>(
       const controller = new AbortController();
       record.reconfigureController = controller;
       try {
-        if (!record.host && record.mountPromise) await record.mountPromise;
+        const mounted = record.mountPromise;
+        if (!record.host && mounted) {
+          // A cancelled update must release the queue so close can retire
+          // the loading mount and await its eventual cleanup.
+          await Effect.runPromise(
+            Effect.tryPromise({ try: () => mounted, catch: (cause) => cause }),
+            { signal: controller.signal },
+          );
+        }
         if (reconfigurationWasCancelled(record, controller)) return;
         const host = record.host;
         if (!host)

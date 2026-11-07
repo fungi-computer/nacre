@@ -1,3 +1,4 @@
+import { setImmediate } from "node:timers/promises";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppError, type AppNavigationState } from "@fungi.computer/agar";
 import {
@@ -12,7 +13,7 @@ type Launch = Readonly<{ windowId: string; title: string }>;
 type Container = Readonly<{ paneId: string }>;
 
 const launch = (windowId: string): Launch => ({ windowId, title: windowId });
-function host(dispose: () => void): WindowHost<Launch> {
+function host(dispose: WindowHost<Launch>["dispose"]): WindowHost<Launch> {
   return {
     dispose,
     reconfigure: () => undefined,
@@ -432,3 +433,52 @@ it("routes Computer choice only to the current window picker registration", asyn
     code: "CAPABILITY_DENIED",
   });
 });
+
+it.each(["close", "dispose"] as const)(
+  "%s cancels a loading update before its mount settles and awaits late cleanup",
+  async (ending) => {
+    const mounting = Promise.withResolvers<WindowHost<Launch>>();
+    const updateStarted = Promise.withResolvers<undefined>();
+    const cleanup = Promise.withResolvers<undefined>();
+    const dispose = vi.fn(() => cleanup.promise);
+    const reconfigure = vi.fn();
+    let mountSignal: AbortSignal | undefined;
+    const manager = createWindowManager<Launch, Container>({
+      createContainer: ({ windowId }) => ({ paneId: windowId }),
+      mount: (_container, _launch, signal) => {
+        mountSignal = signal;
+        return mounting.promise;
+      },
+    });
+    const opening = manager.open(launch("loading"));
+    let updateFinished = false;
+    const updating = manager
+      .update("loading", (current) => {
+        updateStarted.resolve(undefined);
+        return { ...current, title: "Cancelled change" };
+      })
+      .then(() => {
+        updateFinished = true;
+      });
+    await updateStarted.promise;
+    let closeFinished = false;
+    const closing = (
+      ending === "close" ? manager.close("loading") : manager.dispose()
+    ).then(() => {
+      closeFinished = true;
+    });
+    await setImmediate();
+    const beforeMount = { aborted: mountSignal?.aborted, updateFinished };
+    mounting.resolve({ ...host(dispose), reconfigure });
+    await setImmediate();
+    const closedBeforeCleanup = closeFinished;
+    cleanup.resolve(undefined);
+    await Promise.all([opening, updating, closing]);
+    expect(beforeMount).toEqual({ aborted: true, updateFinished: true });
+    expect(closedBeforeCleanup).toBe(false);
+    expect(dispose).toHaveBeenCalledTimes(1);
+    expect(reconfigure).not.toHaveBeenCalled();
+    expect(manager.read().windows).toEqual([]);
+    await manager.dispose();
+  },
+);

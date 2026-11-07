@@ -117,7 +117,7 @@ requestGill(input): Promise<
   title: string;
   state: "error";
   rows: readonly [];
-  reason?: "exec_isolation_required" | "params_required";
+  reason?: "exec_isolation_required" | "params_required" | "disabled";
   error: string;
   recovery?:   | {
      kind: "configure";
@@ -159,11 +159,11 @@ resource data.
 `Promise`\< \| \{ `viewId`: `string`; `title`: `string`; `state`: `"empty"`;
 `rows`: readonly \[\]; `next?`: `string`; \} \| \{ `viewId`: `string`; `title`:
 `string`; `state`: `"error"`; `rows`: readonly \[\]; `reason?`:
-`"exec_isolation_required"` \| `"params_required"`; `error`: `string`;
-`recovery?`: \| \{ `kind`: `"configure"`; `param`: `string`; \} \| \{ `kind`:
-`"open"`; \}; \} \| \{ `viewId`: `string`; `title`: `string`; `state`: `"full"`;
-`rows`: readonly `object`[]; `next?`: `string`; \} \| \{ `options`: readonly
-`object`[]; `next?`: `string`; \}\>
+`"exec_isolation_required"` \| `"params_required"` \| `"disabled"`; `error`:
+`string`; `recovery?`: \| \{ `kind`: `"configure"`; `param`: `string`; \} \| \{
+`kind`: `"open"`; \}; \} \| \{ `viewId`: `string`; `title`: `string`; `state`:
+`"full"`; `rows`: readonly `object`[]; `next?`: `string`; \} \| \{ `options`:
+readonly `object`[]; `next?`: `string`; \}\>
 
 ###### Implementation of
 
@@ -558,7 +558,7 @@ requestGill(input): Promise<
   title: Schema.String;
   state: Schema.Literal<"error">;
   rows: Schema.Tuple<readonly []>;
-  reason?: Schema.optional<Schema.Literals<readonly ["exec_isolation_required", "params_required"]>>;
+  reason?: Schema.optional<Schema.Literals<readonly ["exec_isolation_required", "params_required", "disabled"]>>;
   error: Schema.String;
   recovery?: Schema.optional<Schema.Union<readonly [Schema.Struct<{
      kind: Schema.Literal<...>;
@@ -618,7 +618,7 @@ resource data.
 `title`: `Schema.String`; `state`: `Schema.Literal`\<`"error"`\>; `rows`:
 `Schema.Tuple`\<readonly \[\]\>; `reason?`:
 `Schema.optional`\<`Schema.Literals`\<readonly \[`"exec_isolation_required"`,
-`"params_required"`\]\>\>; `error`: `Schema.String`; `recovery?`:
+`"params_required"`, `"disabled"`\]\>\>; `error`: `Schema.String`; `recovery?`:
 `Schema.optional`\<`Schema.Union`\<readonly \[`Schema.Struct`\<\{ `kind`:
 `Schema.Literal`\<...\>; `param`: `Schema.String`; \}\>, `Schema.Struct`\<\{
 `kind`: `Schema.Literal`\<...\>; \}\>\]\>\>; \} \| \{ `viewId`: `Schema.String`;

@@ -126,6 +126,7 @@ function forwardCommands(
  */
 class MountedChildHandle implements WorkbenchChildHandle {
   #disposed = false;
+  #disposal: Promise<void> | undefined;
 
   constructor(
     private readonly surface: WorkbenchChildSurface,
@@ -190,10 +191,10 @@ class MountedChildHandle implements WorkbenchChildHandle {
     );
   }
 
-  async dispose(): Promise<void> {
-    if (this.#disposed) return;
+  dispose(): Promise<void> {
     this.#disposed = true;
-    await this.release();
+    // Share the barrier before release can call back into the handle.
+    return (this.#disposal ??= Promise.resolve().then(() => this.release()));
   }
 
   [Symbol.dispose](): void {

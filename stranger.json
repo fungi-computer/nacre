@@ -39,6 +39,7 @@
     "package/docs/api/index.md",
     "package/docs/api/keys.md",
     "package/docs/api/shell-module.md",
+    "package/docs/api/website-channels.md",
     "package/docs/api/window-manager.md",
     "package/docs/api/workbench-directory.md",
     "package/docs/api/workbench.md",
