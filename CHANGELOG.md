@@ -1,5 +1,24 @@
 # @fungi.computer/nacre
 
+## 0.3.0
+
+### Minor Changes
+
+- Changes since 0.2.3:
+
+  - feat(oyster): tell every App up front whether a model and media are
+    connected
+  - feat(tourtois): one consent sheet lists git, workflow, event and generation
+    rights
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.9.0
+  - @fungi.computer/gills@0.3.0
+  - @fungi.computer/puffball@0.5.5
+
 ## 0.2.3
 
 ### Patch Changes

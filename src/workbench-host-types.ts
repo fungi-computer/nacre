@@ -6,6 +6,9 @@ import type {
   AgentSessionSelection,
   AppPermissionOutcome,
   AppPermissionRequest,
+  AppSetup,
+  SetupNeed,
+  SetupOutcome,
 } from "@fungi.computer/agar";
 import type { WhistleJsonValue } from "@fungi.computer/whistle";
 import type {
@@ -42,6 +45,20 @@ export type WorkbenchChildSurface = Pick<
   reconfigure(launch: WorkbenchResolvedChild["launch"]): Promise<void>;
 };
 
+/**
+ * What the embedding host knows about its own setup (models, media, git,
+ * terminal), published to every App and kept live. A host with no such
+ * knowledge offers no port, and Apps treat that as `unknown`.
+ */
+export type WorkbenchSetupPort = Readonly<{
+  /** The current facts. */
+  read(): Promise<AppSetup>;
+  /** Hear when the facts may have changed; returns the unsubscribe action. */
+  subscribe(listener: () => void): () => void;
+  /** Take the person to the host's setup surface for one need. */
+  open(need: SetupNeed): Promise<SetupOutcome>;
+}>;
+
 /** Inputs shared child-window mechanics supply to the host's admitted mount. */
 export type WorkbenchChildMountOptions = Readonly<{
   /** The element the child is mounted in. */
@@ -56,6 +73,8 @@ export type WorkbenchChildMountOptions = Readonly<{
   commands: AppSurfaceCommandMount;
   /** Suggest the child's admitted surface in host-rendered Settings. */
   onDesktopSettings: (surfaceId: string) => Promise<void>;
+  /** The host's setup facts and setup surface, when it has them. */
+  setup?: WorkbenchSetupPort | undefined;
   /** Ask the host to obtain the person's approval for the child. */
   onPermissionRequest: (
     input: AppPermissionRequest,
@@ -110,6 +129,8 @@ export type WorkbenchHostControls = Readonly<{
   subscribeChanges(listener: () => void): () => void;
   /** Attach the dashboard arranger; return the host registration cleanup. */
   attachDesktopSettings(handler: WorkbenchDesktopSettings): () => void;
+  /** Setup facts this host publishes to its Apps; omitted when it has none. */
+  setup?: WorkbenchSetupPort | undefined;
   /** Ask the person for the child's own access, never through the dashboard. */
   requestAppAccess(
     target: Readonly<{

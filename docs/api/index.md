@@ -110,6 +110,10 @@ requestGill(input): Promise<
   title: string;
   state: "empty";
   rows: readonly [];
+  emptyText?: string;
+  action?: {
+     kind: "open";
+  };
   next?: string;
 }
   | {
@@ -157,13 +161,14 @@ resource data.
 ###### Returns
 
 `Promise`\< \| \{ `viewId`: `string`; `title`: `string`; `state`: `"empty"`;
-`rows`: readonly \[\]; `next?`: `string`; \} \| \{ `viewId`: `string`; `title`:
-`string`; `state`: `"error"`; `rows`: readonly \[\]; `reason?`:
-`"exec_isolation_required"` \| `"params_required"` \| `"disabled"`; `error`:
-`string`; `recovery?`: \| \{ `kind`: `"configure"`; `param`: `string`; \} \| \{
-`kind`: `"open"`; \}; \} \| \{ `viewId`: `string`; `title`: `string`; `state`:
-`"full"`; `rows`: readonly `object`[]; `next?`: `string`; \} \| \{ `options`:
-readonly `object`[]; `next?`: `string`; \}\>
+`rows`: readonly \[\]; `emptyText?`: `string`; `action?`: \{ `kind`: `"open"`;
+\}; `next?`: `string`; \} \| \{ `viewId`: `string`; `title`: `string`; `state`:
+`"error"`; `rows`: readonly \[\]; `reason?`: `"exec_isolation_required"` \|
+`"params_required"` \| `"disabled"`; `error`: `string`; `recovery?`: \| \{
+`kind`: `"configure"`; `param`: `string`; \} \| \{ `kind`: `"open"`; \}; \} \|
+\{ `viewId`: `string`; `title`: `string`; `state`: `"full"`; `rows`: readonly
+`object`[]; `next?`: `string`; \} \| \{ `options`: readonly `object`[]; `next?`:
+`string`; \}\>
 
 ###### Implementation of
 
@@ -551,6 +556,10 @@ requestGill(input): Promise<
   title: Schema.String;
   state: Schema.Literal<"empty">;
   rows: Schema.Tuple<readonly []>;
+  emptyText?: Schema.optional<Schema.String>;
+  action?: Schema.optional<Schema.Struct<{
+     kind: Schema.Literal<"open">;
+  }>>;
   next?: Schema.optional<Schema.String>;
 }
   | {
@@ -613,18 +622,21 @@ resource data.
 ###### Returns
 
 `Promise`\< \| \{ `viewId`: `Schema.String`; `title`: `Schema.String`; `state`:
-`Schema.Literal`\<`"empty"`\>; `rows`: `Schema.Tuple`\<readonly \[\]\>; `next?`:
-`Schema.optional`\<`Schema.String`\>; \} \| \{ `viewId`: `Schema.String`;
-`title`: `Schema.String`; `state`: `Schema.Literal`\<`"error"`\>; `rows`:
-`Schema.Tuple`\<readonly \[\]\>; `reason?`:
-`Schema.optional`\<`Schema.Literals`\<readonly \[`"exec_isolation_required"`,
-`"params_required"`, `"disabled"`\]\>\>; `error`: `Schema.String`; `recovery?`:
-`Schema.optional`\<`Schema.Union`\<readonly \[`Schema.Struct`\<\{ `kind`:
-`Schema.Literal`\<...\>; `param`: `Schema.String`; \}\>, `Schema.Struct`\<\{
-`kind`: `Schema.Literal`\<...\>; \}\>\]\>\>; \} \| \{ `viewId`: `Schema.String`;
-`title`: `Schema.String`; `state`: `Schema.Literal`\<`"full"`\>; `rows`:
-`Schema.$Array`\<`Schema.Struct`\<\{ `id`: `Schema.String`; `title`:
-`Schema.String`; `detail`: `Schema.optional`\<`Schema.String`\>; `tone`:
+`Schema.Literal`\<`"empty"`\>; `rows`: `Schema.Tuple`\<readonly \[\]\>;
+`emptyText?`: `Schema.optional`\<`Schema.String`\>; `action?`:
+`Schema.optional`\<`Schema.Struct`\<\{ `kind`: `Schema.Literal`\<`"open"`\>;
+\}\>\>; `next?`: `Schema.optional`\<`Schema.String`\>; \} \| \{ `viewId`:
+`Schema.String`; `title`: `Schema.String`; `state`:
+`Schema.Literal`\<`"error"`\>; `rows`: `Schema.Tuple`\<readonly \[\]\>;
+`reason?`: `Schema.optional`\<`Schema.Literals`\<readonly
+\[`"exec_isolation_required"`, `"params_required"`, `"disabled"`\]\>\>; `error`:
+`Schema.String`; `recovery?`: `Schema.optional`\<`Schema.Union`\<readonly
+\[`Schema.Struct`\<\{ `kind`: `Schema.Literal`\<...\>; `param`: `Schema.String`;
+\}\>, `Schema.Struct`\<\{ `kind`: `Schema.Literal`\<...\>; \}\>\]\>\>; \} \| \{
+`viewId`: `Schema.String`; `title`: `Schema.String`; `state`:
+`Schema.Literal`\<`"full"`\>; `rows`: `Schema.$Array`\<`Schema.Struct`\<\{ `id`:
+`Schema.String`; `title`: `Schema.String`; `detail`:
+`Schema.optional`\<`Schema.String`\>; `tone`:
 `Schema.optional`\<`Schema.Literals`\<readonly \[..., ..., ..., ..., ...\]\>\>;
 `status`: `Schema.optional`\<`Schema.Struct`\<\{ `label`: `Schema.String`;
 `tone`: `Schema.Literals`\<...\>; \}\>\>; `open`:
@@ -905,6 +917,29 @@ The host's real mounted App; selection and lease replacement stay with it.
 
 ---
 
+### WorkbenchSetupPort
+
+```ts
+type WorkbenchSetupPort = Readonly<{
+  read: Promise<
+    Readonly<{
+      models: SetupState;
+      media: SetupState;
+      git: SetupState;
+      terminal: "ready" | "exec-only" | "missing" | "unknown";
+    }>
+  >;
+  subscribe: () => void;
+  open: Promise<SetupOutcome>;
+}>;
+```
+
+What the embedding host knows about its own setup (models, media, git,
+terminal), published to every App and kept live. A host with no such knowledge
+offers no port, and Apps treat that as `unknown`.
+
+---
+
 ### WorkbenchChildMountOptions
 
 ```ts
@@ -915,6 +950,7 @@ type WorkbenchChildMountOptions = Readonly<{
   events: TeamWorkbenchChildEvents;
   commands: AppSurfaceCommandMount;
   onDesktopSettings: (surfaceId) => Promise<void>;
+  setup?: WorkbenchSetupPort;
   onPermissionRequest: (input, context) => Promise<AppPermissionOutcome>;
 }>;
 ```
@@ -969,6 +1005,7 @@ type WorkbenchHostControls = Readonly<{
   subscribeSettingsClosed: () => void;
   subscribeChanges: () => void;
   attachDesktopSettings: () => void;
+  setup?: WorkbenchSetupPort;
   requestAppAccess: Promise<AppPermissionOutcome>;
 }>;
 ```

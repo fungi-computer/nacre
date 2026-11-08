@@ -72,6 +72,8 @@ export type RequestShellAppAccess = (
         agents: readonly AgentAccessOperation[];
         /** Computer operations to present. */
         computers: readonly ComputerAccessOperation[];
+        /** Git, Workflow, event and generation rights to present, when asked for. */
+        others?: AppPermissionRequest | undefined;
         /** A host refusal is visible and cannot be converted into an Allow. */
         refusal?: Readonly<{ code: string; message: string }>;
         /** Commit through the host; false means refusal, rejection permits retry. */

@@ -22,6 +22,12 @@ Re-exports [WorkbenchChildSurface](index.md#workbenchchildsurface)
 
 ---
 
+### WorkbenchSetupPort
+
+Re-exports [WorkbenchSetupPort](index.md#workbenchsetupport)
+
+---
+
 ### WorkbenchChildMountOptions
 
 Re-exports [WorkbenchChildMountOptions](index.md#workbenchchildmountoptions)

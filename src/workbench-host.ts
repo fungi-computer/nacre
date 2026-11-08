@@ -415,6 +415,7 @@ export class WorkbenchHost implements TeamWorkbenchHostHandle {
         events,
         onDesktopSettings: (surfaceId) =>
           this.#options.services.suggestDesktopSettings(surfaceId),
+        setup: this.#options.platform.controls.setup,
         onPermissionRequest: (permission, context) =>
           this.#options.platform.controls.requestAppAccess(
             {
