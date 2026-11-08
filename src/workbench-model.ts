@@ -15,6 +15,7 @@ import type {
   AppNavigationState,
   AppStatusAction,
   AppStatusItem,
+  ToastInput,
 } from "@fungi.computer/agar";
 import type { AppOpenInput, AppRoleChoice } from "@fungi.computer/agar/apps";
 import type {
@@ -84,6 +85,8 @@ export type WorkbenchChildEvents = Readonly<{
   onNavigationState?: (state: AppNavigationState | null) => Promise<void>;
   /** The child's latest status readouts; an empty list once it disconnects. */
   onStatusItems?: (items: readonly AppStatusItem[]) => Promise<void>;
+  /** A transient notice the child asks its host to show. */
+  onToast?: (toast: ToastInput) => Promise<void>;
 }>;
 
 /** One mounted child App; every method proxies to its real host-owned mount. */

@@ -1,5 +1,14 @@
 # @fungi.computer/nacre
 
+## 0.4.1
+
+### Patch Changes
+
+- Changes since 0.4.0:
+
+  - fix(hosts): an App's toast shows as a Caps notice in Oyster, Tourtois and
+    Hub (#351)
+
 ## 0.4.0
 
 ### Minor Changes

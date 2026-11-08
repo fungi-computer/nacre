@@ -1123,6 +1123,7 @@ type WorkbenchChildEvents = Readonly<{
   onFocus?: (focused) => Promise<void>;
   onNavigationState?: (state) => Promise<void>;
   onStatusItems?: (items) => Promise<void>;
+  onToast?: (toast) => Promise<void>;
 }>;
 ```
 
