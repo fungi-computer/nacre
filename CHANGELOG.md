@@ -1,5 +1,13 @@
 # @fungi.computer/nacre
 
+## 0.4.0
+
+### Minor Changes
+
+- Changes since 0.3.0:
+
+  - feat(oyster): a trial reports starter App state to its Oyster
+
 ## 0.3.0
 
 ### Minor Changes

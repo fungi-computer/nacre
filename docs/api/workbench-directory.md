@@ -10,6 +10,16 @@
 
 ## Type Aliases
 
+### InstallingApp
+
+```ts
+type InstallingApp = z.output<typeof installingAppSchema>;
+```
+
+One entry of the trial's starter-App list.
+
+---
+
 ### WorkbenchDirectory
 
 ```ts
@@ -41,6 +51,54 @@ const workbenchComputerDirectorySchema: ZodObject<
 ```
 
 The shell picker needs identities and labels, not inventory receipts.
+
+---
+
+### installingReasonSchema
+
+```ts
+const installingReasonSchema: ZodObject<
+  {
+    code: ZodEnum<{
+      build_failed: "build_failed";
+      network: "network";
+      unsupported: "unsupported";
+      unknown: "unknown";
+    }>;
+    message: ZodString;
+  },
+  $strict
+>;
+```
+
+Why a starter App is not usable yet: a short code plus a plain message.
+
+---
+
+### installingAppSchema
+
+```ts
+const installingAppSchema: ZodObject<{
+  installationId: ZodString;
+  displayName: ZodString;
+  state: ZodEnum<{
+     installing: "installing";
+     failed: "failed";
+     needs-runtime: "needs-runtime";
+  }>;
+  reason: ZodOptional<ZodObject<{
+     code: ZodEnum<{
+        build_failed: "build_failed";
+        network: "network";
+        unsupported: "unsupported";
+        unknown: "unknown";
+     }>;
+     message: ZodString;
+  }, $strict>>;
+}, $strict>;
+```
+
+One starter App a trial is still setting up, or could not set up.
 
 ---
 
@@ -111,6 +169,19 @@ const workbenchDirectorySchema: ZodPipe<ZodObject<{
      appId: ZodNullable<ZodString>;
      displayName: ZodString;
   }, $strict>>>;
+  installing: ZodOptional<ZodArray<ZodObject<{
+     installationId: ZodString;
+     displayName: ZodString;
+     state: ZodEnum<{
+        installing: "installing";
+        failed: "failed";
+        needs-runtime: "needs-runtime";
+     }>;
+     reason: ZodOptional<ZodObject<{
+        code: ZodEnum<...>;
+        message: ZodString;
+     }, $strict>>;
+  }, $strict>>>;
 }, $strip>, ZodTransform<{
   apps: object[];
   computer?: {
@@ -123,6 +194,7 @@ const workbenchDirectorySchema: ZodPipe<ZodObject<{
      chosen: boolean;
   }>;
   needsUpdate?: object[];
+  installing?: object[];
 }, {
   apps: object[];
   computer?: {
@@ -135,6 +207,7 @@ const workbenchDirectorySchema: ZodPipe<ZodObject<{
      chosen: boolean;
   }>;
   needsUpdate?: object[];
+  installing?: object[];
 }>>;
 ```
 

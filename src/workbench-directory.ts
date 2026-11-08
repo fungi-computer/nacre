@@ -18,6 +18,44 @@ export const workbenchComputerDirectorySchema = z.object({
   nextOffset: z.number().int().nonnegative().nullable(),
 });
 
+/** Why a starter App is not usable yet: a short code plus a plain message. */
+export const installingReasonSchema = z.strictObject({
+  /** The kind of failure: a build, the network, an unsupported host, or unknown. */
+  code: z.enum({
+    /** The App's build did not finish. */
+    build_failed: "build_failed",
+    /** The network stopped the download. */
+    network: "network",
+    /** This host cannot run the App. */
+    unsupported: "unsupported",
+    /** The cause is not known. */
+    unknown: "unknown",
+  }),
+  /** One plain sentence a person can read. */
+  message: z.string().min(1).max(200),
+});
+
+/** One starter App a trial is still setting up, or could not set up. */
+export const installingAppSchema = z.strictObject({
+  /** The installation this entry describes. */
+  installationId: z.string().min(1).max(64),
+  /** The name shown for the App. */
+  displayName: z.string().min(1).max(64),
+  /** `needs-runtime` is installed but needs a Computer runtime the trial lacks. */
+  state: z.enum({
+    /** The App is being built and installed. */
+    installing: "installing",
+    /** The App could not be installed. */
+    failed: "failed",
+    /** The App is installed but needs a Computer runtime the trial lacks. */
+    "needs-runtime": "needs-runtime",
+  }),
+  /** Why it failed or needs a runtime. */
+  reason: installingReasonSchema.optional(),
+});
+/** One entry of the trial's starter-App list. */
+export type InstallingApp = z.output<typeof installingAppSchema>;
+
 /** Desktop metadata shared by hosts; hosted administration stays in Settings. */
 export const workbenchDirectorySchema = z
   .object({
@@ -56,6 +94,8 @@ export const workbenchDirectorySchema = z
         }),
       )
       .optional(),
+    /** Starter Apps a trial is still installing or could not install; entries clear once installed. */
+    installing: z.array(installingAppSchema).max(16).optional(),
   })
   .transform((directory) =>
     directory.computerContext === "owner-fleet"
