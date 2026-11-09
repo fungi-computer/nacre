@@ -129,6 +129,8 @@ export type WorkbenchHostControls = Readonly<{
   subscribeChanges(listener: () => void): () => void;
   /** Attach the dashboard arranger; return the host registration cleanup. */
   attachDesktopSettings(handler: WorkbenchDesktopSettings): () => void;
+  /** Retry one failed starter installation on a trial host. */
+  retryInstall?: ((installationId: string) => Promise<void>) | undefined;
   /** Setup facts this host publishes to its Apps; omitted when it has none. */
   setup?: WorkbenchSetupPort | undefined;
   /** Ask the person for the child's own access, never through the dashboard. */

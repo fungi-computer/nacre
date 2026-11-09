@@ -117,6 +117,7 @@ describe("importShellModule", () => {
         "  controls: { parseSettings: (value) => value, openSettings: () => undefined,",
         "    subscribeSettingsClosed: off, subscribeChanges: off, attachDesktopSettings: off,",
         "    requestAppAccess: async () => 'declined',",
+        "    retryInstall: async (id) => { if (id !== 'starter') throw new Error('wrong installation'); },",
         "    setup: { read: async () => ({ models: 'missing', media: 'missing', git: 'unknown', terminal: 'unknown' }),",
         "      subscribe: off, open: async (need) => need === 'model' ? 'opened' : 'unavailable' } },",
         "  suggestDesktopSettings: () => undefined, dispose: () => undefined });",
@@ -128,6 +129,13 @@ describe("importShellModule", () => {
       keysWire,
       requestAppAccess: () => Promise.resolve("declined"),
     });
+    expect(mounted?.controls.retryInstall).toBeInstanceOf(Function);
+    await expect(
+      mounted?.controls.retryInstall?.("starter"),
+    ).resolves.toBeUndefined();
+    await expect(mounted?.controls.retryInstall?.("other")).rejects.toThrow(
+      "wrong installation",
+    );
     await expect(mounted?.controls.setup?.read()).resolves.toMatchObject({
       models: "missing",
     });
@@ -135,6 +143,34 @@ describe("importShellModule", () => {
       "opened",
     );
   });
+
+  it.each(["controls", "setup", "result"] as const)(
+    "refuses undeclared %s fields instead of silently dropping them",
+    async (boundary) => {
+      const url = moduleUrl(
+        [
+          "export const mountShell = async () => () => undefined;",
+          "const off = () => () => undefined;",
+          "export const mountPlatformControls = async () => ({",
+          "  controls: { parseSettings: (value) => value, openSettings: () => undefined,",
+          "    subscribeSettingsClosed: off, subscribeChanges: off, attachDesktopSettings: off,",
+          `    requestAppAccess: async () => 'declined', ${boundary === "controls" ? "futureControl: () => undefined," : ""}`,
+          "    retryInstall: async (id) => { if (id !== 'starter') throw new Error('wrong installation'); },",
+          `    setup: { ${boundary === "setup" ? "futureSetup: true," : ""} read: async () => ({ models: 'missing', media: 'missing', git: 'unknown', terminal: 'unknown' }),`,
+          "      subscribe: off, open: async (need) => need === 'model' ? 'opened' : 'unavailable' } },",
+          `  ${boundary === "result" ? "futureFact: true," : ""} suggestDesktopSettings: () => undefined, dispose: () => undefined });`,
+        ].join("\n"),
+      );
+      const shell = await importShellModule(url, url.origin);
+      await expect(
+        shell.mountPlatformControls?.(new HTMLElement(), {
+          teamId: "t",
+          keysWire,
+          requestAppAccess: () => Promise.resolve("declined"),
+        }),
+      ).rejects.toThrow();
+    },
+  );
 
   it("refuses Settings that break the contract", async () => {
     const url = moduleUrl(

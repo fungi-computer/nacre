@@ -1,5 +1,14 @@
 # @fungi.computer/nacre
 
+## 0.4.3
+
+### Patch Changes
+
+- Changes since 0.4.2:
+
+  - fix(nacre): reject undeclared shell settings result fields
+  - fix(nacre): preserve and forward trial installation retry controls
+
 ## 0.4.2
 
 ### Patch Changes

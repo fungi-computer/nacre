@@ -127,9 +127,15 @@ const shellModuleSchema = () =>
           z.unknown(),
         ],
         output: z.promise(
-          z.object({
-            controls: z.object({
+          z.strictObject({
+            controls: z.strictObject({
               sections: z.array(z.string()).readonly().optional(),
+              retryInstall: z
+                .function({
+                  input: [z.string().min(1)],
+                  output: z.promise(z.void()),
+                })
+                .optional(),
               // The host passes the workbench's own values; the shell
               // parses what it reads.
               parseSettings: z.function({
@@ -159,7 +165,7 @@ const shellModuleSchema = () =>
               // Dropping this key hides every setup fact and fix from the
               // Apps, so it is part of the contract, not an extra.
               setup: z
-                .object({
+                .strictObject({
                   read: z.function({
                     input: [],
                     output: z.promise(

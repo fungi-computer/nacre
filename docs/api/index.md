@@ -264,6 +264,30 @@ Describe the actual controls without offering unsupported Settings.
 TeamWorkbenchHostHandle.settingsSections;
 ```
 
+##### retryInstall()
+
+```ts
+retryInstall(installationId): Promise<void>;
+```
+
+Retry a failed starter installation, when this host offers trial installs.
+
+###### Parameters
+
+| Parameter        | Type     |
+| ---------------- | -------- |
+| `installationId` | `string` |
+
+###### Returns
+
+`Promise`\<`void`\>
+
+###### Implementation of
+
+```ts
+TeamWorkbenchHostHandle.retryInstall;
+```
+
 ##### takeAppOpenRequest()
 
 ```ts
@@ -502,6 +526,26 @@ Team/Computer/App-directory reads and child-App hosting for the trusted shell.
 The host composes the shell into its own top-level document, so the shell runs
 with the host's escalated permissions; each child App still runs in its own
 sandboxed frame with its own separately resolved approvals.
+
+#### Properties
+
+##### retryInstall?
+
+```ts
+optional retryInstall?: (installationId) => Promise<void>;
+```
+
+Retry a failed starter installation, when this host offers trial installs.
+
+###### Parameters
+
+| Parameter        | Type     |
+| ---------------- | -------- |
+| `installationId` | `string` |
+
+###### Returns
+
+`Promise`\<`void`\>
 
 #### Methods
 
@@ -1005,6 +1049,7 @@ type WorkbenchHostControls = Readonly<{
   subscribeSettingsClosed: () => void;
   subscribeChanges: () => void;
   attachDesktopSettings: () => void;
+  retryInstall?: (installationId) => Promise<void>;
   setup?: WorkbenchSetupPort;
   requestAppAccess: Promise<AppPermissionOutcome>;
 }>;

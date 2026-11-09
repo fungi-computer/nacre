@@ -281,6 +281,16 @@ export class WorkbenchHost implements TeamWorkbenchHostHandle {
     return Promise.resolve(controls.sections?.slice() ?? null);
   }
 
+  async retryInstall(installationId: string): Promise<void> {
+    const retry = this.#options.platform.controls.retryInstall;
+    if (retry === undefined)
+      throw new AppError("This host cannot retry App installations", {
+        code: "CAPABILITY_DENIED",
+        retryable: false,
+      });
+    await retry(Schema.decodeUnknownSync(nonBlank)(installationId));
+  }
+
   takeAppOpenRequest(): Promise<AppOpenInput | null> {
     return Promise.resolve(this.#options.platform.takeAppOpenRequest());
   }

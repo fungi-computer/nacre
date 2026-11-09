@@ -5,7 +5,10 @@ import { WorkbenchHost } from "../src/workbench-host.js";
 import type { WorkbenchPreparedChild } from "../src/workbench-host-types.js";
 
 /** Real child handle over an independently controlled host-resource lifetime. */
-function childWorkbench(dispose: WorkbenchPreparedChild["dispose"]) {
+function childWorkbench(
+  dispose: WorkbenchPreparedChild["dispose"],
+  retryInstall?: (installationId: string) => Promise<void>,
+) {
   const unavailable = (): never => {
     throw new Error("This fixture does not offer account or platform services");
   };
@@ -42,6 +45,7 @@ function childWorkbench(dispose: WorkbenchPreparedChild["dispose"]) {
       open: unavailable,
       takeAppOpenRequest: unavailable,
       controls: {
+        retryInstall,
         parseSettings: unavailable,
         openSettings: unavailable,
         subscribeSettingsClosed: unavailable,
@@ -53,7 +57,7 @@ function childWorkbench(dispose: WorkbenchPreparedChild["dispose"]) {
     reportAgentSessionSelection: unavailable,
     log: unavailable,
   });
-  return () =>
+  const mount = () =>
     workbench.mount(
       document.createElement("div"),
       {
@@ -67,6 +71,7 @@ function childWorkbench(dispose: WorkbenchPreparedChild["dispose"]) {
       { onAgentSessionSelection: () => Promise.resolve() },
       new AbortController().signal,
     );
+  return Object.assign(mount, { workbench });
 }
 
 it("keeps overlapping child disposal pending until the window identity is released", async () => {
@@ -100,4 +105,18 @@ it("keeps a failed child disposal observable to overlapping and later callers", 
   await Promise.all([first, second]);
   await expect(child.dispose()).rejects.toBe(cause);
   expect(dispose).toHaveBeenCalledTimes(1);
+});
+
+it("retries only through the host's offered installation control", async () => {
+  const retry = vi
+    .fn<(id: string) => Promise<void>>()
+    .mockResolvedValue(undefined);
+  const { workbench } = childWorkbench(() => Promise.resolve(), retry);
+  await workbench.retryInstall("starter");
+  expect(retry).toHaveBeenCalledExactlyOnceWith("starter");
+  await expect(workbench.retryInstall("")).rejects.toThrow();
+  expect(retry).toHaveBeenCalledTimes(1);
+  await expect(
+    childWorkbench(() => Promise.resolve()).workbench.retryInstall("starter"),
+  ).rejects.toThrow("This host cannot retry App installations");
 });

@@ -66,6 +66,8 @@ export type TeamWorkbenchHostHandle = {
   platformDestinations(): Promise<readonly WorkbenchPlatformDestination[]>;
   /** Offered Settings categories, or null for unrestricted host controls. */
   settingsSections(): Promise<readonly string[] | null>;
+  /** Retry a failed starter installation, when this host offers trial installs. */
+  retryInstall?: ((installationId: string) => Promise<void>) | undefined;
   /** Ask the host to navigate to one offered platform destination. */
   openPlatformDestination(id: string): Promise<void>;
   /**
