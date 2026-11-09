@@ -108,6 +108,34 @@ describe("importShellModule", () => {
     expect(call?.[2].customize).toBeInstanceOf(Function);
   });
 
+  it("keeps the shell's setup port, so Apps receive setup facts and a working fix", async () => {
+    const url = moduleUrl(
+      [
+        "export const mountShell = async () => () => undefined;",
+        "const off = () => () => undefined;",
+        "export const mountPlatformControls = async () => ({",
+        "  controls: { parseSettings: (value) => value, openSettings: () => undefined,",
+        "    subscribeSettingsClosed: off, subscribeChanges: off, attachDesktopSettings: off,",
+        "    requestAppAccess: async () => 'declined',",
+        "    setup: { read: async () => ({ models: 'missing', media: 'missing', git: 'unknown', terminal: 'unknown' }),",
+        "      subscribe: off, open: async (need) => need === 'model' ? 'opened' : 'unavailable' } },",
+        "  suggestDesktopSettings: () => undefined, dispose: () => undefined });",
+      ].join("\n"),
+    );
+    const shell = await importShellModule(url, url.origin);
+    const mounted = await shell.mountPlatformControls?.(new HTMLElement(), {
+      teamId: "t",
+      keysWire,
+      requestAppAccess: () => Promise.resolve("declined"),
+    });
+    await expect(mounted?.controls.setup?.read()).resolves.toMatchObject({
+      models: "missing",
+    });
+    await expect(mounted?.controls.setup?.open("model")).resolves.toBe(
+      "opened",
+    );
+  });
+
   it("refuses Settings that break the contract", async () => {
     const url = moduleUrl(
       [

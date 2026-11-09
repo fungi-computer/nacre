@@ -106,6 +106,7 @@ export type ShellModule = Readonly<{
   mountPlatformControls: MountPlatformControls | null;
 }>;
 
+const setupState = z.enum(["ready", "missing", "unknown"]);
 const unsubscribe = () => z.function({ input: [], output: z.void() });
 /** The module namespace a shell Release must export; built on first use,
  * since only a browser has `HTMLElement`. */
@@ -155,6 +156,36 @@ const shellModuleSchema = () =>
                 input: [z.unknown(), z.unknown()],
                 output: z.promise(z.enum(["granted", "declined", "customize"])),
               }),
+              // Dropping this key hides every setup fact and fix from the
+              // Apps, so it is part of the contract, not an extra.
+              setup: z
+                .object({
+                  read: z.function({
+                    input: [],
+                    output: z.promise(
+                      z.strictObject({
+                        models: setupState,
+                        media: setupState,
+                        git: setupState,
+                        terminal: z.enum([
+                          "ready",
+                          "exec-only",
+                          "missing",
+                          "unknown",
+                        ]),
+                      }),
+                    ),
+                  }),
+                  subscribe: z.function({
+                    input: [z.function({ input: [], output: z.void() })],
+                    output: unsubscribe(),
+                  }),
+                  open: z.function({
+                    input: [z.enum(["model", "media", "git", "computer"])],
+                    output: z.promise(z.enum(["opened", "unavailable"])),
+                  }),
+                })
+                .optional(),
             }),
             suggestDesktopSettings: z.function({
               input: [z.string()],

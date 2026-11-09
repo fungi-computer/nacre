@@ -1,5 +1,13 @@
 # @fungi.computer/nacre
 
+## 0.4.2
+
+### Patch Changes
+
+- Changes since 0.4.1:
+
+  - fix(nacre): deliver setup facts and fixes to every App (#393)
+
 ## 0.4.1
 
 ### Patch Changes
