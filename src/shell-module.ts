@@ -173,6 +173,7 @@ const shellModuleSchema = () =>
                         models: setupState,
                         media: setupState,
                         git: setupState,
+                        terminalReason: z.string().optional(),
                         terminal: z.enum([
                           "ready",
                           "exec-only",

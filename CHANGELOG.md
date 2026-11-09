@@ -1,5 +1,16 @@
 # @fungi.computer/nacre
 
+## 0.4.4
+
+### Patch Changes
+
+- Changes since 0.4.3:
+
+  - fix(oyster): run trial Computers in a workspace sandbox
+
+- Updated dependencies
+  - @fungi.computer/agar@0.9.1
+
 ## 0.4.3
 
 ### Patch Changes
