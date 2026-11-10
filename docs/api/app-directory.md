@@ -583,3 +583,23 @@ Stable identity of one App address across directory and settings views.
 #### Returns
 
 `string`
+
+---
+
+### appCallMethodLabel()
+
+```ts
+function appCallMethodLabel(method): string;
+```
+
+Shared readable copy for a declared method; authority keeps its exact key.
+
+#### Parameters
+
+| Parameter | Type     |
+| --------- | -------- |
+| `method`  | `string` |
+
+#### Returns
+
+`string`

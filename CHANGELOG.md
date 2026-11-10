@@ -1,5 +1,13 @@
 # @fungi.computer/nacre
 
+## 0.4.5
+
+### Patch Changes
+
+- Changes since 0.4.4:
+
+  - fix(ui): clarify App access and unfunded Agent setup
+
 ## 0.4.4
 
 ### Patch Changes

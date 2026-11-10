@@ -427,3 +427,25 @@ export const appCatalogBrokerResultSchema = z.lazy(() =>
     }),
   ]),
 );
+
+const methodLabels = new Map([
+  ["files.tree", "browse files"],
+  ["files.list", "list files"],
+  ["files.read", "read files"],
+  ["commits.list", "read commits"],
+  ["rebuildCopies", "refresh file views"],
+  ["files.save", "save files"],
+  ["files.sync", "sync files"],
+  ["files.discard", "discard edits"],
+]);
+
+/** Shared readable copy for a declared method; authority keeps its exact key. */
+export function appCallMethodLabel(method: string): string {
+  const known = methodLabels.get(method);
+  if (known !== undefined) return known;
+  return method
+    .replace(/([a-z0-9])([A-Z])/gu, "$1 $2")
+    .replace(/[._-]+/gu, " ")
+    .trim()
+    .toLowerCase();
+}
