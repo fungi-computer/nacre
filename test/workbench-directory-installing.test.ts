@@ -24,6 +24,21 @@ it("accepts bounded installing entries with a typed reason", () => {
   expect(parsed.installing).toHaveLength(3);
 });
 
+it("keeps the App id of an installing entry so other screens can name it", () => {
+  const parsed = workbenchDirectorySchema.parse({
+    ...base,
+    installing: [
+      {
+        installationId: "bonsai",
+        displayName: "Bonsai",
+        appId: "app_bonsai",
+        state: "installing",
+      },
+    ],
+  });
+  expect(parsed.installing?.[0]?.appId).toBe("app_bonsai");
+});
+
 it.each([
   [{ installationId: "x", displayName: "X", state: "done" }],
   [

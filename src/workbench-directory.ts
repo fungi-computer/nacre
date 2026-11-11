@@ -41,6 +41,8 @@ export const installingAppSchema = z.strictObject({
   installationId: z.string().min(1).max(64),
   /** The name shown for the App. */
   displayName: z.string().min(1).max(64),
+  /** The App's id, so other screens can name it while it is not yet installed. */
+  appId: z.string().min(1).max(64).optional(),
   /** `needs-runtime` is installed but needs a Computer runtime the trial lacks. */
   state: z.enum({
     /** The App is being built and installed. */

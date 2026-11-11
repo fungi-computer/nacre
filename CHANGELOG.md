@@ -1,5 +1,13 @@
 # @fungi.computer/nacre
 
+## 0.4.6
+
+### Patch Changes
+
+- Changes since 0.4.5:
+
+  - fix(oyster): name an App-call target in permissions while it installs
+
 ## 0.4.5
 
 ### Patch Changes

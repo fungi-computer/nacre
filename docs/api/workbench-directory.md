@@ -81,6 +81,7 @@ Why a starter App is not usable yet: a short code plus a plain message.
 const installingAppSchema: ZodObject<{
   installationId: ZodString;
   displayName: ZodString;
+  appId: ZodOptional<ZodString>;
   state: ZodEnum<{
      installing: "installing";
      failed: "failed";
@@ -172,6 +173,7 @@ const workbenchDirectorySchema: ZodPipe<ZodObject<{
   installing: ZodOptional<ZodArray<ZodObject<{
      installationId: ZodString;
      displayName: ZodString;
+     appId: ZodOptional<ZodString>;
      state: ZodEnum<{
         installing: "installing";
         failed: "failed";
