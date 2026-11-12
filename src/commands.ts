@@ -3,6 +3,9 @@ import type { WhistleCommand } from "@fungi.computer/whistle";
 /** The Back binding, also shown by the shell in window chrome. */
 export const backBinding = "<leader>[";
 
+/** The Forward binding, the pair of Back, also shown in window chrome. */
+export const forwardBinding = "<leader>]";
+
 /** The behavior supplied by either a browser or terminal workspace shell. */
 export type ShellActions = Readonly<{
   /** Show the host-owned App picker. */
@@ -19,6 +22,8 @@ export type ShellActions = Readonly<{
   toggleZoom: () => void;
   /** Ask the focused view to go back in its own history. */
   back?: () => void;
+  /** Ask the focused view to go forward in its own history. */
+  forward?: () => void;
 }>;
 
 /**
@@ -131,6 +136,17 @@ export function shellCommands(
             [backBinding, "cmd+["],
             7,
             actions.back,
+          ),
+        ]),
+    ...(actions.forward === undefined
+      ? []
+      : [
+          windowCommand(
+            "forward",
+            "Forward",
+            [forwardBinding, "cmd+]"],
+            8,
+            actions.forward,
           ),
         ]),
   ];

@@ -21,6 +21,7 @@ type ShellActions = Readonly<{
   swapStep: (step) => void;
   toggleZoom: () => void;
   back?: () => void;
+  forward?: () => void;
 }>;
 ```
 
@@ -35,6 +36,16 @@ const backBinding: "<leader>[" = "<leader>[";
 ```
 
 The Back binding, also shown by the shell in window chrome.
+
+---
+
+### forwardBinding
+
+```ts
+const forwardBinding: "<leader>]" = "<leader>]";
+```
+
+The Forward binding, the pair of Back, also shown in window chrome.
 
 ## Functions
 

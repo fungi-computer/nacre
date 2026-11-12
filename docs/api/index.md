@@ -1763,6 +1763,12 @@ Re-exports [backBinding](commands.md#backbinding)
 
 ---
 
+### forwardBinding
+
+Re-exports [forwardBinding](commands.md#forwardbinding)
+
+---
+
 ### ShellActions
 
 Re-exports [ShellActions](commands.md#shellactions)
