@@ -1708,6 +1708,13 @@ Re-exports
 
 ---
 
+### windowShellReservedChordsForUserAgent
+
+Re-exports
+[windowShellReservedChordsForUserAgent](command-host.md#windowshellreservedchordsforuseragent)
+
+---
+
 ### AppCommandTarget
 
 Re-exports [AppCommandTarget](command-host.md#appcommandtarget)

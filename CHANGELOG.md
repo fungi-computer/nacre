@@ -1,5 +1,16 @@
 # @fungi.computer/nacre
 
+## 0.5.2
+
+### Patch Changes
+
+- Changes since 0.5.1:
+
+  - fix(inkcap): reserve only the leader chord in App frames, snap tabs to whole
+    edges
+  - fix(inkcap): forward the leader and window-focus chords from App frames, fix
+    the tab strip
+
 ## 0.5.1
 
 ### Patch Changes

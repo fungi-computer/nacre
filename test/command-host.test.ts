@@ -4,6 +4,7 @@ import { createWhistle, type WhistleRuntime } from "@fungi.computer/whistle";
 import { describe, expect, it, vi } from "vitest";
 import {
   commandPaletteReservedChordForPlatform,
+  windowShellReservedChordsForUserAgent,
   appSurfaceCommandKey,
   createAppSurfaceCommandHost,
   type AppCommandDeclaration,
@@ -226,6 +227,35 @@ describe("Hub App surface command host", () => {
       ctrlKey: true,
       metaKey: false,
     });
+  });
+
+  it("reserves only the leader for a window shell, never Alt-arrows", async () => {
+    const linux = "Mozilla/5.0 (X11; Linux x86_64) Chrome/130.0.0.0";
+    expect(
+      windowShellReservedChordsForUserAgent(linux).map(
+        ({ id, key, altKey, ctrlKey }) => ({ id, key, altKey, ctrlKey }),
+      ),
+    ).toEqual([
+      {
+        id: "shell:show-command-palette",
+        key: "k",
+        altKey: false,
+        ctrlKey: true,
+      },
+    ]);
+    const host = createAppSurfaceCommandHost();
+    const mount = host.mount("focused-app", []);
+    try {
+      await expect(
+        mount.handlers.invokeReservedChord({
+          id: "shell:focus-next",
+          repeat: false,
+        }),
+      ).rejects.toThrow("unavailable");
+    } finally {
+      mount.dispose();
+      host.dispose();
+    }
   });
 
   it("registers Agent actions from a default App surface identity", async () => {

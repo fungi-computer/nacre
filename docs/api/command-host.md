@@ -212,6 +212,31 @@ Select the shell command-palette chord from the embedding browser user agent.
 
 ---
 
+### windowShellReservedChordsForUserAgent()
+
+```ts
+function windowShellReservedChordsForUserAgent(
+  userAgent,
+): readonly AppHostReservedChord[];
+```
+
+Every chord a shell that owns windows reserves for its App frames: the leader
+only. Keys typed inside a frame never reach the shell document, so the leader
+must cross it. Alt-arrows stay the frame's own: Option-arrow is word movement in
+every Mac text field.
+
+#### Parameters
+
+| Parameter   | Type     |
+| ----------- | -------- |
+| `userAgent` | `string` |
+
+#### Returns
+
+readonly `AppHostReservedChord`[]
+
+---
+
 ### appSurfaceCommandKey()
 
 ```ts

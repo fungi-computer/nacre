@@ -113,6 +113,10 @@ const commandPaletteReservedChord: AppHostReservedChord = Object.freeze({
   metaKey: true,
   shiftKey: false,
 });
+/** The shell command each reserved chord runs, by chord id. */
+const reservedChordCommands = new Map<string, WhistleCommandKey>([
+  [commandPaletteReservedChord.id, commandPaletteCommand],
+]);
 
 /** Select the shell command-palette chord for a Mac or non-Mac keyboard. */
 export function commandPaletteReservedChordForPlatform(
@@ -132,6 +136,18 @@ export function commandPaletteReservedChordForUserAgent(
   return commandPaletteReservedChordForPlatform(
     /Mac|iPhone|iPad/u.test(userAgent),
   );
+}
+
+/**
+ * Every chord a shell that owns windows reserves for its App frames: the
+ * leader only. Keys typed inside a frame never reach the shell document, so
+ * the leader must cross it. Alt-arrows stay the frame's own: Option-arrow is
+ * word movement in every Mac text field.
+ */
+export function windowShellReservedChordsForUserAgent(
+  userAgent: string,
+): readonly AppHostReservedChord[] {
+  return Object.freeze([commandPaletteReservedChordForUserAgent(userAgent)]);
 }
 
 /** One App command, named by its surface and its declared command id. */
@@ -542,10 +558,12 @@ export function createAppSurfaceCommandHost(
       input,
     ) => {
       assertLive();
-      if (state.disposed || input.id !== commandPaletteReservedChord.id)
+      const command = reservedChordCommands.get(input.id);
+      if (state.disposed || command === undefined)
         throw new Error("App reserved chord is unavailable");
+      // Holding the leader must not reopen and close its list.
       if (input.repeat) return;
-      const outcome = await execute(commandPaletteCommand, {
+      const outcome = await execute(command, {
         origin: "browser",
       });
       if (outcome.status !== "handled")
