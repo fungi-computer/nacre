@@ -80,7 +80,7 @@ export type WorkbenchChildEvents = Readonly<{
   onFocus?: (focused: boolean) => Promise<void>;
   /**
    * The child's latest parsed navigation state; `null` once it disconnects.
-   * The dashboard shows a Back affordance from it.
+   * The dashboard shows Back and Forward affordances from it.
    */
   onNavigationState?: (state: AppNavigationState | null) => Promise<void>;
   /** The child's latest status readouts; an empty list once it disconnects. */
@@ -99,6 +99,8 @@ export type WorkbenchChildHandle = {
   requestClose(): Promise<boolean>;
   /** Ask the child to go back one step in its own history; `true` when it did. */
   requestBack(): Promise<boolean>;
+  /** Ask the child to go forward one step in its own history; `true` when it did. */
+  requestForward(): Promise<boolean>;
   /** Deliver the person's use of a child's status item; `true` when it acted. */
   activateStatus(action: AppStatusAction): Promise<boolean>;
   /** Deliver the person's use of a child's crumb or header command; `true` when it acted. */

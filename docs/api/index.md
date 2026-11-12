@@ -944,6 +944,7 @@ type WorkbenchChildSurface = Pick<
   | "setVisibility"
   | "requestClose"
   | "requestBack"
+  | "requestForward"
   | "activateStatus"
   | "activateNavigation"
 > &
@@ -1245,6 +1246,18 @@ requestBack(): Promise<boolean>;
 ```
 
 Ask the child to go back one step in its own history; `true` when it did.
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
+##### requestForward()
+
+```ts
+requestForward(): Promise<boolean>;
+```
+
+Ask the child to go forward one step in its own history; `true` when it did.
 
 ###### Returns
 

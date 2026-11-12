@@ -111,6 +111,7 @@ function sameNavigation(
   if (current === null || next === null) return current === next;
   return (
     current.canGoBack === next.canGoBack &&
+    current.canGoForward === next.canGoForward &&
     current.title === next.title &&
     JSON.stringify([
       current.crumbs,
@@ -141,6 +142,8 @@ export type WindowHost<Launch extends WindowLaunch> = Readonly<{
   requestClose?: () => boolean | Promise<boolean>;
   /** Ask the mounted App to go back in its own history; `true` when it did. */
   requestBack?: () => boolean | Promise<boolean>;
+  /** Ask the mounted App to go forward in its own history; `true` when it did. */
+  requestForward?: () => boolean | Promise<boolean>;
   /** Deliver the person's use of a crumb or header command; `true` when the App acted. */
   activateNavigation?: (
     activation: AppNavigationActivation,
@@ -246,6 +249,8 @@ export type WindowManager<Launch extends WindowLaunch, Container> = Readonly<{
   replace: (windowId: string, launch: Launch) => Promise<void>;
   /** Ask a ready window's App to go back; `false` when it cannot. */
   back: (windowId: string) => Promise<boolean>;
+  /** Ask a ready window's App to go forward; `false` when it cannot. */
+  forward: (windowId: string) => Promise<boolean>;
   /** Deliver a crumb or header command to a ready window's App; `false` when it cannot. */
   activateNavigation: (
     windowId: string,
@@ -374,7 +379,7 @@ export function createWindowManager<Launch extends WindowLaunch, Container>(
         container: record.container,
         status: record.status,
         generation: record.generation,
-        // A loading, hidden or failed App offers no Back.
+        // A loading, hidden or failed App offers no Back or Forward.
         navigation: record.status === "ready" ? record.navigation : null,
         statusItems: record.statusItems,
       };
@@ -1003,6 +1008,19 @@ export function createWindowManager<Launch extends WindowLaunch, Container>(
     return requestBack ? await requestBack() : false;
   };
 
+  const forward = async (windowId: string): Promise<boolean> => {
+    const record = records.get(windowId);
+    if (
+      !record ||
+      !isActive(record) ||
+      record.status !== "ready" ||
+      record.navigation?.canGoForward !== true
+    )
+      return false;
+    const requestForward = record.host?.requestForward;
+    return requestForward ? await requestForward() : false;
+  };
+
   const activateNavigation = async (
     windowId: string,
     activation: AppNavigationActivation,
@@ -1099,6 +1117,7 @@ export function createWindowManager<Launch extends WindowLaunch, Container>(
     registerComputerChoice,
     replace,
     back,
+    forward,
     dispose,
     read,
     subscribe: (listener) => {

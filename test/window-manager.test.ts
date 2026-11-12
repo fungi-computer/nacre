@@ -301,6 +301,7 @@ describe("window navigation activations", () => {
     await manager.open(launch("trellis"));
     publish?.({
       canGoBack: false,
+      canGoForward: false,
       crumbs: [
         { id: "app", label: "Trellis" },
         { id: "wf", label: "Flow", siblings: [{ id: "b", label: "B" }] },
@@ -326,6 +327,41 @@ describe("window navigation activations", () => {
     expect(delivered).toHaveLength(3);
     publish?.(null);
     await expect(use({ kind: "crumb", crumbId: "app" })).resolves.toBe(false);
+    await manager.dispose();
+  });
+});
+
+describe("window history requests", () => {
+  it("relays Back and Forward only while the App publishes that it can move", async () => {
+    const asked: string[] = [];
+    let publish: ((state: AppNavigationState | null) => void) | undefined;
+    const manager = createWindowManager<Launch, Container>({
+      createContainer: ({ windowId }) => ({ paneId: windowId }),
+      mount: (_container, _launch, _signal, events) => {
+        publish = events.onNavigationState;
+        return {
+          ...host(() => undefined),
+          requestBack: () => {
+            asked.push("back");
+            return true;
+          },
+          requestForward: () => {
+            asked.push("forward");
+            return true;
+          },
+        };
+      },
+    });
+    await manager.open(launch("bonsai"));
+    await expect(manager.back("bonsai")).resolves.toBe(false);
+    await expect(manager.forward("bonsai")).resolves.toBe(false);
+    publish?.({ canGoBack: true, canGoForward: false });
+    await expect(manager.back("bonsai")).resolves.toBe(true);
+    await expect(manager.forward("bonsai")).resolves.toBe(false);
+    publish?.({ canGoBack: false, canGoForward: true });
+    await expect(manager.back("bonsai")).resolves.toBe(false);
+    await expect(manager.forward("bonsai")).resolves.toBe(true);
+    expect(asked).toEqual(["back", "forward"]);
     await manager.dispose();
   });
 });

@@ -25,6 +25,7 @@ function childWorkbench(
             reconfigure: () => Promise.resolve(),
             requestClose: () => Promise.resolve(true),
             requestBack: () => Promise.resolve(false),
+            requestForward: () => Promise.resolve(false),
             activateNavigation: () => Promise.resolve(false),
             activateStatus: () => Promise.resolve(false),
             dispose: () => undefined,

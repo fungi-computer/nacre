@@ -159,6 +159,11 @@ class MountedChildHandle implements WorkbenchChildHandle {
     return this.surface.requestBack();
   }
 
+  async requestForward(): Promise<boolean> {
+    if (this.#disposed) return false;
+    return this.surface.requestForward();
+  }
+
   async activateStatus(action: AppStatusAction): Promise<boolean> {
     if (this.#disposed) return false;
     // The shell relays the person's click; parse it at the host's edge.

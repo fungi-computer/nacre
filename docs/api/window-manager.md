@@ -41,6 +41,7 @@ type WindowHost<Launch> = Readonly<{
   reconfigure: (launch, signal?) => void | Promise<void>;
   requestClose?: () => boolean | Promise<boolean>;
   requestBack?: () => boolean | Promise<boolean>;
+  requestForward?: () => boolean | Promise<boolean>;
   activateNavigation?: (activation) => boolean | Promise<boolean>;
   activateStatus?: (action) => boolean | Promise<boolean>;
   dispose: () => void | Promise<void>;
@@ -170,6 +171,7 @@ type WindowManager<Launch, Container> = Readonly<{
   update: (windowId, derive) => Promise<void>;
   replace: (windowId, launch) => Promise<void>;
   back: (windowId) => Promise<boolean>;
+  forward: (windowId) => Promise<boolean>;
   activateNavigation: (windowId, activation) => Promise<boolean>;
   activateStatus: (windowId, action) => Promise<boolean>;
   registerComputerChoice: (windowId, handler) => () => void;

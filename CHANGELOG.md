@@ -1,5 +1,18 @@
 # @fungi.computer/nacre
 
+## 0.5.0
+
+### Minor Changes
+
+- Changes since 0.4.6:
+
+  - feat(window): add in-App Forward to the window contract and title bar
+
+### Patch Changes
+
+- Updated dependencies
+  - @fungi.computer/agar@0.10.0
+
 ## 0.4.6
 
 ### Patch Changes

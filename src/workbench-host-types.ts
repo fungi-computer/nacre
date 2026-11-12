@@ -36,6 +36,7 @@ export type WorkbenchChildSurface = Pick<
   | "setVisibility"
   | "requestClose"
   | "requestBack"
+  | "requestForward"
   | "activateStatus"
   | "activateNavigation"
 > & {
