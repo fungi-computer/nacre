@@ -240,6 +240,15 @@ export const teamComputerSchema = z.strictObject({
   computerId: z.string().min(1),
   /** The name shown for the Computer. */
   name: z.string().min(1).max(256),
+  /** The size chosen at creation; it sets the Computer's vCPUs, memory and price. */
+  size: z.enum({
+    /** The smallest and cheapest Computer. */
+    small: "small",
+    /** The size a new Computer gets unless another is chosen. */
+    default: "default",
+    /** The largest and most expensive Computer. */
+    large: "large",
+  }),
   /** When the Computer was created. */
   createdAt: z.number().int().nonnegative(),
   /** When the Computer last changed. */

@@ -1,5 +1,22 @@
 # @fungi.computer/nacre
 
+## 0.6.0
+
+### Minor Changes
+
+- Changes since 0.5.5:
+
+  - fix(nacre): document the Computer size values and regenerate API docs
+  - feat(computer): small, default and large Computers with a published hourly
+    price
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.12.1
+  - @fungi.computer/puffball@0.7.0
+
 ## 0.5.5
 
 ### Patch Changes

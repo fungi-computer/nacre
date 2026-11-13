@@ -1620,6 +1620,11 @@ const teamComputerSchema: ZodObject<
   {
     computerId: ZodString;
     name: ZodString;
+    size: ZodEnum<{
+      small: "small";
+      default: "default";
+      large: "large";
+    }>;
     createdAt: ZodNumber;
     updatedAt: ZodNumber;
   },
@@ -1641,6 +1646,11 @@ const teamComputerDirectorySchema: ZodObject<
         {
           computerId: ZodString;
           name: ZodString;
+          size: ZodEnum<{
+            small: "small";
+            default: "default";
+            large: "large";
+          }>;
           createdAt: ZodNumber;
           updatedAt: ZodNumber;
         },
