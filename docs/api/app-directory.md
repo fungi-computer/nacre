@@ -33,15 +33,10 @@ A host-reported authority change and its remaining work.
 ### AppDirectoryGill
 
 ```ts
-type AppDirectoryGill = {
-  [
-    Field in keyof Schema.Schema.Type<typeof appDeclaredGillSchema>
-  ]: Schema.Schema.Type<typeof appDeclaredGillSchema>[Field];
-};
+type AppDirectoryGill = AppDeclaredGill;
 ```
 
-A Release-declared Gill carried by the host's App directory. The named mapped
-type keeps consumer declarations attached to this public contract.
+A Release-declared Gill, preserving its rows/surface discrimination.
 
 ---
 
@@ -214,7 +209,7 @@ const appDirectoryEntrySchema: ZodObject<{
         slash?: ... | ...;
      }>;
   }>[], unknown[]>>;
-  gills: ZodPipe<ZodArray<ZodUnknown>, ZodTransform<AppDirectoryGill[], unknown[]>>;
+  gills: ZodPipe<ZodArray<ZodUnknown>, ZodTransform<AppDeclaredGill[], unknown[]>>;
   availability: ZodEnum<{
      available: "available";
      unavailable: "unavailable";
@@ -393,7 +388,7 @@ const appDirectoryResponseSchema: ZodLazy<ZodObject<{
         sigil?: ...;
         projections?: ...;
      }>[], unknown[]>>;
-     gills: ZodPipe<ZodArray<ZodUnknown>, ZodTransform<AppDirectoryGill[], unknown[]>>;
+     gills: ZodPipe<ZodArray<ZodUnknown>, ZodTransform<AppDeclaredGill[], unknown[]>>;
      availability: ZodEnum<{
         available: "available";
         unavailable: "unavailable";
@@ -437,24 +432,22 @@ const appCatalogEntrySchema: ZodObject<{
   surfaceId: ZodString;
   appId: ZodString;
   displayName: ZodOptional<ZodString>;
-  gills: ZodArray<ZodObject<{
+  gills: ZodArray<ZodDiscriminatedUnion<[ZodObject<{
+     view: ZodLiteral<"rows">;
      id: ZodString;
      title: ZodString;
-     params: ZodOptional<ZodLazy<ZodArray<ZodObject<{
-        key: ...;
-        label: ...;
-        kind: ...;
-        required: ...;
-        options: ...;
-     }, $strict>> & ZodType<readonly object[], object[], $ZodTypeInternals<readonly ...[], ...[]>>>>;
+     params: ZodOptional<ZodLazy<ZodArray<...> & ZodType<..., ..., ...>>>;
      desktop: ZodOptional<ZodObject<{
-        sizes: ZodArray<ZodEnum<{
-           S: ...;
-           M: ...;
-           L: ...;
-        }>>;
+        sizes: ZodArray<...>;
      }, $strict>>;
-  }, $strict>>;
+   }, $strict>, ZodObject<{
+     id: ZodString;
+     title: ZodString;
+     view: ZodLiteral<"surface">;
+     desktop: ZodObject<{
+        sizes: ZodArray<ZodEnum<...>>;
+     }, $strict>;
+  }, $strict>], "view">>;
 }, $strict>;
 ```
 
@@ -470,12 +463,18 @@ const appCatalogResponseSchema: ZodLazy<ZodObject<{
      surfaceId: ZodString;
      appId: ZodString;
      displayName: ZodOptional<ZodString>;
-     gills: ZodArray<ZodObject<{
-        id: ZodString;
-        title: ZodString;
-        params: ZodOptional<ZodLazy<...>>;
-        desktop: ZodOptional<ZodObject<..., ...>>;
-     }, $strict>>;
+     gills: ZodArray<ZodDiscriminatedUnion<[ZodObject<{
+        view: ...;
+        id: ...;
+        title: ...;
+        params: ...;
+        desktop: ...;
+      }, $strict>, ZodObject<{
+        id: ...;
+        title: ...;
+        view: ...;
+        desktop: ...;
+     }, $strict>], "view">>;
   }, $strict>>;
   roles: ZodObject<{
      inbox: ZodOptional<ZodObject<{
@@ -499,7 +498,7 @@ const appCatalogBrokerResultSchema: ZodLazy<ZodUnion<readonly [ZodLazy<ZodObject
      surfaceId: ZodString;
      appId: ZodString;
      displayName: ZodOptional<ZodString>;
-     gills: ZodArray<ZodObject<..., ...>>;
+     gills: ZodArray<ZodDiscriminatedUnion<..., ...>>;
   }, $strict>>;
   roles: ZodObject<{
      inbox: ZodOptional<ZodObject<{

@@ -1,5 +1,22 @@
 # @fungi.computer/nacre
 
+## 0.8.0
+
+### Minor Changes
+
+- Changes since 0.7.2:
+
+  - feat(gills): declare surface Gills beside row Gills
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.21.0
+  - @fungi.computer/gills@0.4.0
+  - @fungi.computer/puffball@0.11.0
+
 ## 0.7.2
 
 ### Patch Changes

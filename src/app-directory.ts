@@ -10,6 +10,7 @@ import { sha256DigestSchema as effectSha256DigestSchema } from "@fungi.computer/
 import {
   appDeclaredGillSchema,
   appGillParamsSchema,
+  type AppDeclaredGill,
 } from "@fungi.computer/gills";
 import * as z from "zod";
 
@@ -68,15 +69,8 @@ export type AppAuthorityEnforcement = z.output<
   typeof appAuthorityEnforcementSchema
 >;
 
-/**
- * A Release-declared Gill carried by the host's App directory. The named
- * mapped type keeps consumer declarations attached to this public contract.
- */
-export type AppDirectoryGill = {
-  [
-    Field in keyof Schema.Schema.Type<typeof appDeclaredGillSchema>
-  ]: Schema.Schema.Type<typeof appDeclaredGillSchema>[Field];
-};
+/** A Release-declared Gill, preserving its rows/surface discrimination. */
+export type AppDirectoryGill = AppDeclaredGill;
 
 /** Reusable App metadata supplied by an embedding host; it conveys no permissions. */
 export const appDirectoryEntrySchema = z.strictObject({
@@ -364,7 +358,9 @@ const catalogGillParamsSchema = z.lazy(() =>
       "Invalid Gill placement parameters",
     ),
 );
-const catalogGillSchema = z.strictObject({
+const catalogRowGillSchema = z.strictObject({
+  /** Rows are read and rendered by the shell. */
+  view: z.literal("rows"),
   /** The Gill's id. */
   id: z.string().trim().min(1).max(256),
   /** The name shown for the Gill. */
@@ -395,6 +391,15 @@ const catalogGillSchema = z.strictObject({
     })
     .optional(),
 });
+const catalogGillSchema = z.discriminatedUnion("view", [
+  catalogRowGillSchema,
+  catalogRowGillSchema.omit({ params: true }).extend({
+    /** A surface renders through the App's own frame. */
+    view: z.literal("surface"),
+    /** Every surface declares its supported desktop sizes. */
+    desktop: catalogRowGillSchema.shape.desktop.unwrap(),
+  }),
+]);
 /** Read-only catalog metadata for one App, without host-specific role policy. */
 export const appCatalogEntrySchema = appDirectoryEntrySchema
   .pick({

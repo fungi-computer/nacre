@@ -141,7 +141,7 @@ const workbenchDirectorySchema: ZodPipe<ZodObject<{
         sigil?: ...;
         projections?: ...;
      }>[], unknown[]>>;
-     gills: ZodPipe<ZodArray<ZodUnknown>, ZodTransform<AppDirectoryGill[], unknown[]>>;
+     gills: ZodPipe<ZodArray<ZodUnknown>, ZodTransform<AppDeclaredGill[], unknown[]>>;
      availability: ZodEnum<{
         available: "available";
         unavailable: "unavailable";
