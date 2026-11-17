@@ -154,7 +154,12 @@ const workbenchDirectorySchema: ZodPipe<ZodObject<{
         computerId: ...;
         name: ...;
      }, $strip>, ZodLiteral<"owner-fleet">]>>;
-     computerPermission: ZodOptional<ZodNullable<ZodDiscriminatedUnion<[ZodLazy<...>, ZodLazy<...>], "kind">>>;
+     permission: ZodOptional<ZodNullable<ZodObject<{
+        authority: ZodNullable<...>;
+        declaredOperations: ZodObject<..., ...>;
+        artifactDigest: ZodCustom<..., ...>;
+        canEdit: ZodBoolean;
+     }, $strict>>>;
   }, $strip>>;
   computer: ZodOptional<ZodObject<{
      computerId: ZodString;

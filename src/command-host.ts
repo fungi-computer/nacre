@@ -417,8 +417,39 @@ export function createAppSurfaceCommandHost(
   const publish = (): void => {
     for (const listener of listeners) listener();
   };
+  // Directory rows share one namespace; each row's local id is an opaque
+  // index whose App command target this map holds.
+  let directoryTargets: ReadonlyMap<string, AppCommandTarget> = new Map();
+  /**
+   * One App command can have two palette rows: the directory row that opens
+   * its App, and the mounted App's own. They carry different command ids, so
+   * the active view lists the command once, as the App's own row. The whole
+   * graph keeps both, so a closed App can still be reopened.
+   */
+  const withoutShadowedDirectoryRows = (
+    snapshot: WhistleSnapshot,
+  ): WhistleSnapshot => {
+    const own = snapshot.palette.filter(
+      (row) => row.sourceId !== appDirectorySourceId,
+    );
+    const palette = snapshot.palette.filter((row) => {
+      if (row.sourceId !== appDirectorySourceId) return true;
+      const target = directoryTargets.get(row.command.id);
+      return (
+        target === undefined ||
+        !own.some((candidate) =>
+          sameWhistleCommand(candidate.command, appSurfaceCommandKey(target)),
+        )
+      );
+    });
+    return palette.length === snapshot.palette.length
+      ? snapshot
+      : { ...snapshot, palette: Object.freeze(palette) };
+  };
   const projectFocus = (graph: WhistleSnapshot): void => {
-    activeSnapshot = scopeSnapshot(graph, focusedMount);
+    activeSnapshot = withoutShadowedDirectoryRows(
+      scopeSnapshot(graph, focusedMount),
+    );
     focusedMenu =
       focusedMount === null
         ? emptyMenu
@@ -800,18 +831,13 @@ export function createAppSurfaceCommandHost(
     };
   };
 
-  // Directory rows share one namespace; each row's local id is an opaque
-  // index whose App command target this map holds.
-  let directoryTargets: ReadonlyMap<string, AppCommandTarget> = new Map();
   const registerDirectoryCommands: AppSurfaceCommandHost["registerDirectoryCommands"] =
     (rows, run) => {
       assertLive();
       directoryContribution?.dispose();
       const targets = new Map<string, AppCommandTarget>();
-      const contribution = whistle.contribute({
-        sourceId: appDirectorySourceId,
-        namespace: appDirectorySourceId,
-        commands: rows.flatMap(({ surfaceId, appTitle, command }, index) => {
+      const commands = rows.flatMap(
+        ({ surfaceId, appTitle, command }, index) => {
           const palette = command.projections?.palette;
           if (palette === undefined) return [];
           const id = `entry-${String(index)}`;
@@ -829,10 +855,17 @@ export function createAppSurfaceCommandHost(
           return command.description === undefined
             ? [projected]
             : [{ ...projected, description: command.description }];
-        }),
+        },
+      );
+      // The targets are in place before the contribution recomputes the
+      // active view, which reads them to tell a directory row from its App's.
+      directoryTargets = targets;
+      const contribution = whistle.contribute({
+        sourceId: appDirectorySourceId,
+        namespace: appDirectorySourceId,
+        commands,
       });
       directoryContribution = contribution;
-      directoryTargets = targets;
       let active = true;
       return () => {
         if (!active) return;

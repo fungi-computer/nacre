@@ -55,60 +55,13 @@ An App directory row before host-specific permissions are attached.
 
 ---
 
-### AppComputerOperation
+### AppPermissionFacts
 
 ```ts
-type AppComputerOperation = Extract<
-  z.output<typeof appComputerPermissionSchema>,
-  {
-    kind: "all-team-computers";
-  }
->["operations"][number];
+type AppPermissionFacts = z.output<typeof appPermissionFactsSchema>;
 ```
 
-One operation an App may request for a Computer.
-
----
-
-### AppComputerPermission
-
-```ts
-type AppComputerPermission = z.output<typeof appComputerPermissionSchema>;
-```
-
-Decoded Computer permission scope attached to an App directory entry.
-
----
-
-### AppAgentPermission
-
-```ts
-type AppAgentPermission = z.output<typeof appAgentPermissionSchema>;
-```
-
-Decoded Agent permission scope attached to an App directory entry.
-
----
-
-### AppGenerationPermissions
-
-```ts
-type AppGenerationPermissions = z.output<typeof appGenerationPermissionsSchema>;
-```
-
-Decoded generation permissions attached to an App directory entry.
-
----
-
-### AppMarketplacePermissions
-
-```ts
-type AppMarketplacePermissions = z.output<
-  typeof appMarketplacePermissionsSchema
->;
-```
-
-Decoded marketplace permissions attached to an App directory entry.
+Decoded permission facts attached to an App directory row.
 
 ---
 
@@ -293,97 +246,106 @@ A host-resolved role selection; a surface address is not launch authority.
 
 ---
 
-### appComputerPermissionSchema
+### appPermissionFactsSchema
 
 ```ts
-const appComputerPermissionSchema: ZodDiscriminatedUnion<[ZodLazy<ZodObject<{
-  kind: ZodLiteral<"selected-computers">;
-  computers: ZodArray<ZodObject<{
-     computerId: ZodString;
-     operations: ZodArray<ZodEnum<{
-        computer.list: ...;
-        computer.readFile: ...;
-        computer.writeFile: ...;
-        computer.execute: ...;
-     }>>;
+const appPermissionFactsSchema: ZodObject<{
+  authority: ZodNullable<ZodObject<{
+     authorityVersion: ZodNumber;
+     declaredOperationsDigest: ZodCustom<Sha256Digest, Sha256Digest>;
+     approvedGrants: ZodReadonly<ZodArray<ZodReadonly<ZodObject<{
+        capability: ZodCustom<..., ...>;
+        capabilityApproved: ZodLiteral<...>;
+        operations: ZodReadonly<...>;
+        fingerprints: ZodReadonly<...>;
+        resources: ZodUnion<...>;
+     }, $strict>>>>;
+     approval: ZodNullable<ZodReadonly<ZodObject<{
+        by: ZodMiniDiscriminatedUnion<[..., ..., ...], "kind">;
+        at: ZodNumber;
+        authorityVersion: ZodNumber;
+     }, $strict>>>;
   }, $strict>>;
-}, $strict>>, ZodLazy<ZodObject<{
-  kind: ZodLiteral<"all-team-computers">;
-  operations: ZodArray<ZodEnum<{
-     computer.list: "computer.list";
-     computer.readFile: "computer.readFile";
-     computer.writeFile: "computer.writeFile";
-     computer.execute: "computer.execute";
-  }>>;
-}, $strict>>], "kind">;
+  declaredOperations: ZodObject<{
+     artifactDigest: ZodCustom<Sha256Digest, Sha256Digest>;
+     digest: ZodCustom<Sha256Digest, Sha256Digest>;
+     capabilities: ZodReadonly<ZodArray<ZodReadonly<ZodObject<{
+        capability: ZodCustom<
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...,
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+           | ...
+          | ...>;
+        operations: ZodReadonly<ZodArray<...>>;
+        fingerprints: ZodReadonly<ZodRecord<..., ...>>;
+     }, $strict>>>>;
+  }, $strict>;
+  artifactDigest: ZodCustom<Sha256Digest, Sha256Digest>;
+  canEdit: ZodBoolean;
+}, $strict>;
 ```
 
-App Computer permissions limited to selected Computers or the Team's Computers.
-
----
-
-### appAgentPermissionSchema
-
-```ts
-const appAgentPermissionSchema: ZodDiscriminatedUnion<[ZodObject<{
-  kind: ZodLiteral<"all-team-agents">;
-  directoryOperations: ZodArray<ZodEnum<{
-     agent.list: "agent.list";
-  }>>;
-  sessionOperations: ZodArray<ZodEnum<{
-     agent.read: "agent.read";
-     agent.send: "agent.send";
-     agent.manage: "agent.manage";
-  }>>;
-}, $strict>, ZodObject<{
-  kind: ZodLiteral<"selected-agents">;
-  directoryOperations: ZodArray<ZodEnum<{
-     agent.list: "agent.list";
-  }>>;
-  agents: ZodArray<ZodObject<{
-     agentId: ZodString;
-     sessionOperations: ZodArray<ZodEnum<{
-        agent.read: "agent.read";
-        agent.send: "agent.send";
-        agent.manage: "agent.manage";
-     }>>;
-  }, $strict>>;
-}, $strict>], "kind">;
-```
-
-Agent directory and session operations an App may request from its host.
-
----
-
-### appGenerationPermissionsSchema
-
-```ts
-const appGenerationPermissionsSchema: ZodObject<
-  {
-    llm: ZodBoolean;
-    media: ZodBoolean;
-  },
-  $strict
->;
-```
-
-Whether an App may use language-model and media generation services.
-
----
-
-### appMarketplacePermissionsSchema
-
-```ts
-const appMarketplacePermissionsSchema: ZodObject<
-  {
-    browse: ZodBoolean;
-    purchase: ZodBoolean;
-  },
-  $strict
->;
-```
-
-Whether an App may browse or request marketplace acquisitions.
+What one App row says about permissions: the Team's stored approvals (null when
+no installation exists yet), the Release's declared operations, the artifact
+digest and whether the viewer may edit. A save pins the artifact digest and the
+declared-operations digest from here.
 
 ---
 
@@ -445,28 +407,16 @@ const appDirectoryResponseSchema: ZodLazy<ZodObject<{
         releaseId: ZodString;
         surfaceRoute: ZodNullable<ZodString>;
      }, $strict>>;
-     grants: ZodArray<ZodObject<{
-        operation: ZodString;
-        resourceId: ZodString;
+     permission: ZodNullable<ZodObject<{
+        authority: ZodNullable<ZodObject<..., ...>>;
+        declaredOperations: ZodObject<{
+           artifactDigest: ...;
+           digest: ...;
+           capabilities: ...;
+        }, $strict>;
+        artifactDigest: ZodCustom<Sha256Digest, Sha256Digest>;
+        canEdit: ZodBoolean;
      }, $strict>>;
-     computerPermission: ZodOptional<ZodNullable<ZodDiscriminatedUnion<[ZodLazy<...>, ZodLazy<...>], "kind">>>;
-     generationPermissions: ZodObject<{
-        llm: ZodBoolean;
-        media: ZodBoolean;
-     }, $strict>;
-     marketplacePermissions: ZodObject<{
-        browse: ZodBoolean;
-        purchase: ZodBoolean;
-     }, $strict>;
-     agentPermission: ZodDiscriminatedUnion<[ZodObject<{
-        kind: ZodLiteral<...>;
-        directoryOperations: ZodArray<...>;
-        sessionOperations: ZodArray<...>;
-      }, $strict>, ZodObject<{
-        kind: ZodLiteral<...>;
-        directoryOperations: ZodArray<...>;
-        agents: ZodArray<...>;
-     }, $strict>], "kind">;
   }, $strict>>;
   roles: ZodRecord<ZodString, ZodObject<{
      surfaceId: ZodNullable<ZodString>;

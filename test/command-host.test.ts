@@ -365,6 +365,68 @@ describe("Hub App surface command host", () => {
     }
   });
 
+  it("lists an App command once in the active view: the mounted App's own row replaces its directory row", async () => {
+    const host = createAppSurfaceCommandHost();
+    const refresh = {
+      ...command("refresh", "Refresh"),
+      projections: { palette: {} },
+    };
+    const ports = {
+      ...command("ports", "Ports"),
+      projections: { palette: {} },
+    };
+    const dispose = host.registerDirectoryCommands(
+      [refresh, ports].map((declared) => ({
+        surfaceId: "installation:demo",
+        appTitle: "Demo",
+        command: declared,
+      })),
+      () => Promise.resolve(),
+    );
+    const mount = host.mount("installation:demo", [refresh, ports]);
+    try {
+      const titles = () =>
+        host
+          .active()
+          .palette.map((row) => [row.sourceId, row.title])
+          .sort();
+      // Closed: only the directory rows.
+      expect(titles()).toEqual([
+        ["app-directory", "Ports"],
+        ["app-directory", "Refresh"],
+      ]);
+
+      await mount.handlers.registerCommands({
+        commands: [refresh, ports],
+        invoke: () => Promise.resolve(undefined),
+      });
+      // Mounted but not focused: its own rows are not active, so the directory
+      // rows still stand for it.
+      expect(titles()).toEqual([
+        ["app-directory", "Ports"],
+        ["app-directory", "Refresh"],
+      ]);
+
+      host.focus("installation:demo");
+      expect(titles()).toEqual([
+        ["installation:demo", "Ports"],
+        ["installation:demo", "Refresh"],
+      ]);
+      // The whole graph still holds both, so a closed App can be reopened.
+      expect(host.snapshot().palette).toHaveLength(4);
+
+      host.focus(null);
+      expect(titles()).toEqual([
+        ["app-directory", "Ports"],
+        ["app-directory", "Refresh"],
+      ]);
+    } finally {
+      mount.dispose();
+      dispose();
+      host.dispose();
+    }
+  });
+
   it("advertises Release command rows before mount and routes them to the App opener", async () => {
     const host = createAppSurfaceCommandHost();
     const run = vi.fn(() => Promise.resolve());

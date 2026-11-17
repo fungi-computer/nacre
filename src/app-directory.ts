@@ -1,8 +1,12 @@
 import * as Schema from "effect/Schema";
 import {
+  appCapabilityIdSchema,
   appDeclaredCommandSchema,
+  type AppCapabilityId,
   appCallsSchema,
 } from "@fungi.computer/puffball/app";
+import { hostActorSchema } from "@fungi.computer/puffball/app-method-runtime";
+import { sha256DigestSchema as effectSha256DigestSchema } from "@fungi.computer/puffball/effect";
 import {
   appDeclaredGillSchema,
   appGillParamsSchema,
@@ -150,122 +154,137 @@ export const appRoleSelectionSchema = z.strictObject({
   /** Whether an App is selected for the role. */
   chosen: z.boolean(),
 });
-const appComputerOperationSchema = z.enum({
-  /** List the Team's Computers. */
-  "computer.list": "computer.list",
-  /** Read a file on a Computer. */
-  "computer.readFile": "computer.readFile",
-  /** Write a file on a Computer. */
-  "computer.writeFile": "computer.writeFile",
-  /** Run a command on a Computer. */
-  "computer.execute": "computer.execute",
-});
-
-const selectedComputerPermissionSchema = z.lazy(() =>
-  z.strictObject({
-    /** Marks a permission limited to selected Computers. */
-    kind: z.literal("selected-computers"),
-    /** The selected Computers and what the App may do on each. */
-    computers: z.array(
-      z.strictObject({
-        /** The Computer the operations apply to. */
-        computerId: z.string().min(1),
-        /** The operations the App may request on that Computer. */
-        operations: z.array(appComputerOperationSchema),
-      }),
-    ),
-  }),
+const sha256DigestSchema = z.custom<typeof effectSha256DigestSchema.Type>(
+  Schema.is(effectSha256DigestSchema),
 );
-const allTeamComputersPermissionSchema = z.lazy(() =>
-  z.strictObject({
-    /** Marks a permission covering all of the Team's Computers. */
-    kind: z.literal("all-team-computers"),
-    /** The operations the App may request on any Team Computer. */
-    operations: z.array(appComputerOperationSchema),
-  }),
+const capabilityIdSchema = z.custom<AppCapabilityId>(
+  Schema.is(appCapabilityIdSchema),
 );
-/** App Computer permissions limited to selected Computers or the Team's Computers. */
-export const appComputerPermissionSchema = z.discriminatedUnion("kind", [
-  selectedComputerPermissionSchema,
-  allTeamComputersPermissionSchema,
-]);
-/** One operation an App may request for a Computer. */
-export type AppComputerOperation = Extract<
-  z.output<typeof appComputerPermissionSchema>,
-  {
-    /** The permission that covers all of the Team's Computers. */
-    kind: "all-team-computers";
-  }
->["operations"][number];
-/** Decoded Computer permission scope attached to an App directory entry. */
-export type AppComputerPermission = z.output<
-  typeof appComputerPermissionSchema
->;
+const approvalVersionSchema = z.number().int().positive();
+const operationNamesSchema = z
+  .array(z.string().min(1))
+  .refine(
+    (values) => new Set(values).size === values.length,
+    "Operations must be unique",
+  )
+  .readonly();
+const operationFingerprintsSchema = z
+  .record(z.string().min(1), z.string().min(1))
+  .readonly();
 
-const agentDirectoryOperationSchema = z.enum({
-  /** List the Team's agents. */
-  "agent.list": "agent.list",
-});
-const agentSessionOperationSchema = z.enum({
-  /** Read an agent's session. */
-  "agent.read": "agent.read",
-  /** Send a message in an agent's session. */
-  "agent.send": "agent.send",
-  /** Manage an agent's session. */
-  "agent.manage": "agent.manage",
-});
-/** Agent directory and session operations an App may request from its host. */
-export const appAgentPermissionSchema = z.discriminatedUnion("kind", [
-  z.strictObject({
-    /** Marks a permission covering all of the Team's agents. */
-    kind: z.literal("all-team-agents"),
-    /** What the App may do with the agent directory. */
-    directoryOperations: z.array(agentDirectoryOperationSchema),
-    /** What the App may do in any agent's session. */
-    sessionOperations: z.array(agentSessionOperationSchema),
-  }),
-  z.strictObject({
-    /** Marks a permission limited to selected agents. */
-    kind: z.literal("selected-agents"),
-    /** What the App may do with the agent directory. */
-    directoryOperations: z.array(agentDirectoryOperationSchema),
-    /** The selected agents and what the App may do in each one's session. */
-    agents: z.array(
-      z.strictObject({
-        /** The agent the operations apply to. */
-        agentId: z.string().min(1).max(256),
-        /** What the App may do in that agent's session. */
-        sessionOperations: z.array(agentSessionOperationSchema),
-      }),
-    ),
-  }),
-]);
-/** Decoded Agent permission scope attached to an App directory entry. */
-export type AppAgentPermission = z.output<typeof appAgentPermissionSchema>;
+/** One resource, such as a Computer or an Agent, that an approval is limited to. */
+const approvedResourceSchema = z
+  .strictObject({
+    /** What kind of resource this is, such as a Computer or an Agent. */
+    kind: z.string().min(1),
+    /** The host's id for the resource. */
+    id: z.string().min(1),
+  })
+  .readonly();
 
-/** Whether an App may use language-model and media generation services. */
-export const appGenerationPermissionsSchema = z.strictObject({
-  /** Whether the App may use language-model generation. */
-  llm: z.boolean(),
-  /** Whether the App may use media generation. */
-  media: z.boolean(),
-});
-/** Decoded generation permissions attached to an App directory entry. */
-export type AppGenerationPermissions = z.output<
-  typeof appGenerationPermissionsSchema
->;
+/**
+ * One capability the Team approved, with the operations and resources it
+ * covers.
+ */
+const approvedGrantSchema = z
+  .strictObject({
+    /** The capability the Team approved. */
+    capability: capabilityIdSchema,
+    /** Always true: only an approval is ever stored. */
+    capabilityApproved: z.literal(true),
+    /** The operations the approval covers. */
+    operations: operationNamesSchema,
+    /** What each approved operation did when the Team approved it. */
+    fingerprints: operationFingerprintsSchema,
+    /** Every resource of the Team ("tenant-scope"), or only the named ones. */
+    resources: z.union([
+      z.literal("tenant-scope"),
+      z.array(approvedResourceSchema).readonly(),
+    ]),
+  })
+  .readonly();
 
-/** Whether an App may browse or request marketplace acquisitions. */
-export const appMarketplacePermissionsSchema = z.strictObject({
-  /** Whether the App may browse marketplace entries. */
-  browse: z.boolean(),
-  /** Whether the App may request an acquisition, confirmed by the owner. */
-  purchase: z.boolean(),
+/** What the Team has approved for one App, as the host stores it. */
+const appAuthoritySchema = z.strictObject({
+  /** Counts each change to the approvals; a save names the version it read. */
+  authorityVersion: z.number().int().positive(),
+  /** Digest of the declared operations the approvals were made against. */
+  declaredOperationsDigest: sha256DigestSchema,
+  /** The approvals, one per capability. */
+  approvedGrants: z
+    .array(approvedGrantSchema)
+    .refine(
+      (grants) =>
+        new Set(grants.map((grant) => grant.capability)).size === grants.length,
+      "Capabilities must be unique",
+    )
+    .refine(
+      (grants) =>
+        grants.every((grant) => {
+          const names = Object.keys(grant.fingerprints);
+          return (
+            names.length === grant.operations.length &&
+            grant.operations.every((operation) => names.includes(operation))
+          );
+        }),
+      "Every approved operation needs exactly one fingerprint",
+    )
+    .readonly(),
+  /** Who approved and when, or null when nothing was approved yet. */
+  approval: z
+    .strictObject({
+      /** The member, Agent or Team key that approved. */
+      by: hostActorSchema,
+      /** When the approval was made, in epoch milliseconds. */
+      at: z.number().int().nonnegative(),
+      /** The authority version the approval produced. */
+      authorityVersion: approvalVersionSchema,
+    })
+    .readonly()
+    .nullable(),
 });
-/** Decoded marketplace permissions attached to an App directory entry. */
-export type AppMarketplacePermissions = z.output<
-  typeof appMarketplacePermissionsSchema
->;
+
+/** What the selected Release can do, derived from the host's descriptors. */
+const declaredOperationsSchema = z.strictObject({
+  /** Digest of the artifact these operations were derived from. */
+  artifactDigest: sha256DigestSchema,
+  /** Digest of the whole declared set; a save names the digest it read. */
+  digest: sha256DigestSchema,
+  /** The capabilities the Release declares and the operations each offers. */
+  capabilities: z
+    .array(
+      z
+        .strictObject({
+          /** The capability the Release declares. */
+          capability: capabilityIdSchema,
+          /** The operations the capability offers this Release. */
+          operations: operationNamesSchema,
+          /** What each operation does. */
+          fingerprints: operationFingerprintsSchema,
+        })
+        .readonly(),
+    )
+    .readonly(),
+});
+
+/**
+ * What one App row says about permissions: the Team's stored approvals (null
+ * when no installation exists yet), the Release's declared operations, the
+ * artifact digest and whether the viewer may edit. A save pins the artifact
+ * digest and the declared-operations digest from here.
+ */
+export const appPermissionFactsSchema = z.strictObject({
+  /** The Team's stored approvals, or null when the App is not installed yet. */
+  authority: appAuthoritySchema.nullable(),
+  /** What the selected Release can do. */
+  declaredOperations: declaredOperationsSchema,
+  /** Digest of the artifact the declared operations describe. */
+  artifactDigest: sha256DigestSchema,
+  /** Whether the person reading the row may change its permissions. */
+  canEdit: z.boolean(),
+});
+/** Decoded permission facts attached to an App directory row. */
+export type AppPermissionFacts = z.output<typeof appPermissionFactsSchema>;
 
 /**
  * A host's Team App directory with its permission projection, parsed strictly
@@ -306,25 +325,11 @@ export const appDirectoryResponseSchema = z.lazy(() =>
             surfaceRoute: z.string().min(1).nullable(),
           })
           .nullable(),
-        /** The operation grants held for this App. */
-        grants: z.array(
-          z.strictObject({
-            /** The operation that is granted. */
-            operation: z.string().min(1),
-            /** The resource the grant covers. */
-            resourceId: z.string().min(1),
-          }),
-        ),
         /**
-         * The App's Computer permission, or null or absent when it has none.
+         * The App's permission facts, or null when its Release cannot be
+         * resolved now: nothing is shown and nothing is edited from a guess.
          */
-        computerPermission: appComputerPermissionSchema.nullable().optional(),
-        /** The App's generation permissions. */
-        generationPermissions: appGenerationPermissionsSchema,
-        /** The App's marketplace permissions. */
-        marketplacePermissions: appMarketplacePermissionsSchema,
-        /** The App's Agent permission. */
-        agentPermission: appAgentPermissionSchema,
+        permission: appPermissionFactsSchema.nullable(),
       }),
     ),
     /** The Team's effective App per role, owned and resolved by the host. */

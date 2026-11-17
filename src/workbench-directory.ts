@@ -2,7 +2,7 @@ import * as z from "zod";
 import {
   appDirectoryEntrySchema,
   appRoleSelectionSchema,
-  appComputerPermissionSchema,
+  appPermissionFactsSchema,
 } from "./app-directory.js";
 import { teamComputerSchema } from "./workbench-model.js";
 
@@ -70,9 +70,10 @@ export const workbenchDirectorySchema = z
             .union([computerChoiceSchema, z.literal("owner-fleet")])
             .optional(),
           /**
-           * The row's Computer permission, or null or absent when it has none.
+           * The row's permission facts, or null or absent when its host keeps
+           * none.
            */
-          computerPermission: appComputerPermissionSchema.nullable().optional(),
+          permission: appPermissionFactsSchema.nullable().optional(),
         })
         .strip(),
     ),

@@ -1,5 +1,20 @@
 # @fungi.computer/nacre
 
+## 0.7.0
+
+### Minor Changes
+
+- Changes since 0.6.7:
+
+  - fix(nacre): list an App command once in the active view
+  - feat(nacre): carry each App's permission facts in the directory row
+
+### Patch Changes
+
+- Updated dependencies
+  - @fungi.computer/agar@0.18.2
+  - @fungi.computer/puffball@0.9.1
+
 ## 0.6.7
 
 ### Patch Changes

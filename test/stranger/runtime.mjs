@@ -52,21 +52,9 @@ assert.equal(shellWindows.read().windows.length, 0);
 
 assert.equal(workbench.WorkbenchHost.name, "WorkbenchHost");
 
-for (const name of [
-  "appDirectoryResponseSchema",
-  "appComputerPermissionSchema",
-  "appAgentPermissionSchema",
-  "appMarketplacePermissionsSchema",
-]) {
+for (const name of ["appDirectoryResponseSchema", "appPermissionFactsSchema"]) {
   assert.equal(name in shell, false, `Private Team contract leaked: ${name}`);
 }
-assert.equal(
-  "computerPermission" in shell.appDirectoryEntrySchema.shape,
-  false,
-);
-assert.equal(
-  "marketplacePermissions" in shell.appDirectoryEntrySchema.shape,
-  false,
-);
+assert.equal("permission" in shell.appDirectoryEntrySchema.shape, false);
 assert.equal("agentPermission" in shell.appDirectoryEntrySchema.shape, false);
 assert.equal("grants" in shell.appDirectoryEntrySchema.shape, false);
