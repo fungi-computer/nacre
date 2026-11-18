@@ -1,21 +1,23 @@
 # Nacre (`@fungi.computer/nacre`)
 
-Nacre is mother-of-pearl, the lining an oyster grows on the inside of its shell.
-This package is that lining for App hosts: the shell client that windows,
-commands, keys and the App directory are built from. Oyster's page uses it, and
-any shell can import it without the Oyster server.
+Nacre is the client code for an App desktop: it manages windows, commands, keys
+and the directory of Apps.
 
-## Install or set up
-
-```sh
-pnpm add @fungi.computer/nacre
+```mermaid
+flowchart LR
+  Shell[Your shell or Oyster's page] --> Nacre
+  Nacre --> Windows[Window manager]
+  Nacre --> Directory[App directory and keys]
+  Nacre -->|calls| Host[App host]
 ```
 
-The package is ESM-only. It depends on `@fungi.computer/agar`,
-`@fungi.computer/ear-tag`, `@fungi.computer/gills`, `@fungi.computer/puffball`,
-`@fungi.computer/whistle`, `effect` and `zod`.
-
 ## Quick start
+
+Install it:
+
+```sh
+npm install @fungi.computer/nacre
+```
 
 ```ts
 import { createWindowManager } from "@fungi.computer/nacre";
@@ -30,6 +32,39 @@ const windows = createWindowManager({
 });
 await windows.open({ windowId: "notes" });
 ```
+
+## Common tasks
+
+### Open a window
+
+`createWindowManager` then `windows.open`. See the Quick start.
+
+### Understand what Nacre owns
+
+See [Core concepts](#core-concepts).
+
+### Know the limits
+
+See Limits and errors.
+
+## Reference
+
+### Overview
+
+Nacre is mother-of-pearl, the lining an oyster grows on the inside of its shell.
+This package is that lining for App hosts: the shell client that windows,
+commands, keys and the App directory are built from. Oyster's page uses it, and
+any shell can import it without the Oyster server.
+
+## Install or set up
+
+```sh
+pnpm add @fungi.computer/nacre
+```
+
+The package is ESM-only. It depends on `@fungi.computer/agar`,
+`@fungi.computer/ear-tag`, `@fungi.computer/gills`, `@fungi.computer/puffball`,
+`@fungi.computer/whistle`, `effect` and `zod`.
 
 ## Core concepts
 

@@ -1,5 +1,19 @@
 # @fungi.computer/nacre
 
+## 0.8.1
+
+### Patch Changes
+
+- Changes since 0.8.0:
+
+  - fix(tourtois): let a surface tile and its App's window coexist in the
+    command graph
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.22.0
+  - @fungi.computer/puffball@0.12.0
+
 ## 0.8.0
 
 ### Minor Changes
