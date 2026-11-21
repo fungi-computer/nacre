@@ -1,5 +1,21 @@
 # @fungi.computer/nacre
 
+## 0.9.0
+
+### Minor Changes
+
+- Changes since 0.8.8:
+
+  - feat(agar): add the agent.extensions capability for attaching hosted
+    extensions
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.26.0
+  - @fungi.computer/puffball@0.14.0
+
 ## 0.8.8
 
 ### Patch Changes
