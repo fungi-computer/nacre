@@ -1,5 +1,14 @@
 # @fungi.computer/nacre
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.27.0
+  - @fungi.computer/puffball@0.15.0
+
 ## 0.9.0
 
 ### Minor Changes
