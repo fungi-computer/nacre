@@ -1,5 +1,14 @@
 # @fungi.computer/nacre
 
+## 0.9.4
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @fungi.computer/agar@0.28.0
+  - @fungi.computer/ear-tag@0.2.0
+
 ## 0.9.3
 
 ### Patch Changes
