@@ -1,5 +1,12 @@
 # @fungi.computer/nacre
 
+## 0.9.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @fungi.computer/agar@0.28.3
+
 ## 0.9.6
 
 ### Patch Changes
