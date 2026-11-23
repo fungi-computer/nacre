@@ -1,5 +1,12 @@
 # @fungi.computer/nacre
 
+## 0.9.12
+
+### Patch Changes
+
+- Updated dependencies
+  - @fungi.computer/mule@0.4.0
+
 ## 0.9.11
 
 ### Patch Changes
