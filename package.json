@@ -1,6 +1,6 @@
 {
   "name": "@fungi.computer/nacre",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "author": "Levi <levi@technomancy.dev>",
   "description": "The shell client for hosting Apps: workbench, command host, keys, commands, window manager and App directory rows",
   "type": "module",
@@ -62,7 +62,7 @@
     "smoke": "node test/stranger/runtime.mjs"
   },
   "dependencies": {
-    "@fungi.computer/agar": "0.28.5",
+    "@fungi.computer/agar": "0.29.0",
     "@fungi.computer/ear-tag": "0.2.0",
     "@fungi.computer/gills": "0.4.0",
     "@fungi.computer/mule": "0.3.0",
