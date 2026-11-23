@@ -1,5 +1,12 @@
 # @fungi.computer/nacre
 
+## 0.9.8
+
+### Patch Changes
+
+- @fungi.computer/agar@0.28.4
+  - @fungi.computer/puffball@0.15.1
+
 ## 0.9.7
 
 ### Patch Changes
