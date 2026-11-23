@@ -259,6 +259,14 @@ optional text?: string;
 
 The words of a text part.
 
+##### textSignature?
+
+```ts
+optional textSignature?: string;
+```
+
+The provider signature that marks a text part as commentary or final.
+
 ---
 
 ### TranscriptMessage

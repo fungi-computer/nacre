@@ -74,3 +74,29 @@ describe("transcriptLine", () => {
     ).toBeNull();
   });
 });
+
+describe("transcriptLine with provider phases", () => {
+  it("shows a commentary and final answer pair once", () => {
+    const signature = (phase: string) =>
+      JSON.stringify({ v: 1, id: "m", phase });
+    expect(
+      transcriptLine({
+        value: {
+          role: "assistant",
+          content: [
+            {
+              type: "text",
+              text: "Hello",
+              textSignature: signature("commentary"),
+            },
+            {
+              type: "text",
+              text: "Hello",
+              textSignature: signature("final_answer"),
+            },
+          ],
+        },
+      }),
+    ).toEqual({ role: "agent", text: "Hello" });
+  });
+});

@@ -3,6 +3,7 @@
  * origin grammar both the Oyster and Hub enforce and the Settings form checks,
  * and the wire shapes of a website, its conversations and a transcript.
  */
+import { assistantTextBlocks } from "@fungi.computer/mule/assistant-text";
 import { z } from "zod";
 
 const loopbackHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
@@ -178,6 +179,8 @@ export type TranscriptPart = {
   type: string;
   /** The words of a text part. */
   text?: string | undefined;
+  /** The provider signature that marks a text part as commentary or final. */
+  textSignature?: string | undefined;
 };
 
 /**
@@ -205,9 +208,7 @@ export function transcriptLine(
   const { role, content } = message.value;
   if (role !== "user" && role !== "assistant") return null;
   const text = hasParts(content)
-    ? content
-        .flatMap((part) => (part.type === "text" ? [part.text ?? ""] : []))
-        .join("")
+    ? assistantTextBlocks(content).join("")
     : content;
   if (text.trim() === "") return null;
   return { role: role === "user" ? "visitor" : "agent", text };

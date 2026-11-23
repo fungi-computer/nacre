@@ -1,5 +1,16 @@
 # @fungi.computer/nacre
 
+## 0.9.9
+
+### Patch Changes
+
+- Changes since 0.9.8:
+
+  - fix(hub): let the assistant text module into the browser and Worker budgets
+  - fix(shiitake): show every other agent text surface once too
+
+- @fungi.computer/agar@0.28.5
+
 ## 0.9.8
 
 ### Patch Changes
