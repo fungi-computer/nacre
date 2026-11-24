@@ -1,5 +1,13 @@
 # @fungi.computer/nacre
 
+## 0.9.13
+
+### Patch Changes
+
+- Changes since 0.9.12:
+
+  - fix(oyster): list the packed files the stranger proof found missing
+
 ## 0.9.12
 
 ### Patch Changes
