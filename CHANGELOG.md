@@ -1,5 +1,11 @@
 # @fungi.computer/nacre
 
+## 0.9.16
+
+### Patch Changes
+
+- @fungi.computer/agar@0.29.3
+
 ## 0.9.15
 
 ### Patch Changes
